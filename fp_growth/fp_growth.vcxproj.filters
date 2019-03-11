@@ -15,7 +15,7 @@
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="test\frequent_patter_tree_test.cpp">
+    <ClCompile Include="test\frequent_pattern_tree_test.cpp">
       <Filter>test</Filter>
     </ClCompile>
   </ItemGroup>
