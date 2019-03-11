@@ -33,7 +33,7 @@ public:
 
 	public:
 
-		explicit frequent_pattern_tree_iterator(const frequent_pattern_tree fpt) {
+		explicit frequent_pattern_tree_iterator(const frequent_pattern_tree& fpt) {
 			for (const auto& [_, child] : fpt.root_->children) {
 				item_queue_.push(child);
 			}
