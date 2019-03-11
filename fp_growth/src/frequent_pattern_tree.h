@@ -2,10 +2,12 @@
 
 #include <map>
 #include <memory>
-#include <ostream>
 #include <set>
+#include <queue>
 #include <utility>
 #include <vector>
+
+class frequent_pattern_tree_iterator;
 
 template <typename T>
 class frequent_pattern_tree final {
@@ -20,20 +22,41 @@ class frequent_pattern_tree final {
 		explicit frequent_pattern_tree_node(T value, std::shared_ptr<frequent_pattern_tree_node> parent = nullptr)
 			: value{std::move(value)},
 			  parent{std::move(parent)} {}
-
-		friend std::ostream& operator<<(std::ostream& os, const frequent_pattern_tree_node& node) {
-			os << node.value << ":" << node.count << " ";
-			for (const auto& [_, child] : node.children) {
-				os << *child;
-			}
-			return os;
-		}
 	};
 
 	std::shared_ptr<frequent_pattern_tree_node> root_ = std::make_shared<frequent_pattern_tree_node>(T{});
 	std::map<T, std::vector<std::shared_ptr<frequent_pattern_tree_node>>> item_links_;
 
 public:
+
+	class frequent_pattern_tree_iterator final {
+
+		std::queue<std::shared_ptr<frequent_pattern_tree_node>> queue_;
+
+	public:
+
+		explicit frequent_pattern_tree_iterator(const frequent_pattern_tree fpt) {
+			for (const auto& [_, child] : fpt.root_->children) {
+				queue_.push(child);
+			}
+		}
+
+		operator bool() const {
+			return !queue_.empty();
+		}
+
+		std::pair<T, uint32_t> operator*() const {
+			if (queue_.empty()) throw std::exception{"Attempted to dereference an invalid iterator"};
+			return std::make_pair(queue_.front()->value, queue_.front()->count);
+		}
+
+		void operator++() {
+			for (const auto& [_, child] : queue_.front()->children) {
+				queue_.push(child);
+			}
+			queue_.pop();
+		}
+	};
 
 	explicit frequent_pattern_tree(const std::vector<std::set<T>>& itemsets = {}) {
 		for (const auto& itemset : itemsets) {
@@ -54,13 +77,6 @@ public:
 			}
 			iterator = iterator->children[item];
 		}
-	}
-
-	friend std::ostream& operator<<(std::ostream& os, const frequent_pattern_tree& fpt) {
-		for (const auto& [_, child] : fpt.root_->children) {
-			os << *child;
-		}
-		return os;
 	}
 
 private:
