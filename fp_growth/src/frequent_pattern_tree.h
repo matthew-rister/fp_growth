@@ -30,6 +30,9 @@ class frequent_pattern_tree final {
 		}
 	};
 
+	std::shared_ptr<frequent_pattern_tree_node> root_ = std::make_shared<frequent_pattern_tree_node>(T{});
+	std::map<T, std::vector<std::shared_ptr<frequent_pattern_tree_node>>> item_links_;
+
 public:
 
 	explicit frequent_pattern_tree(const std::vector<std::set<T>>& itemsets = {}) {
@@ -45,6 +48,7 @@ public:
 		for (const auto& item : itemset) {
 			if (!iterator->children.count(item)) {
 				iterator->children[item] = std::make_shared<frequent_pattern_tree_node>(item, iterator);
+				create_item_link(iterator->children[item]);
 			} else {
 				++iterator->children[item]->count;
 			}
@@ -61,5 +65,11 @@ public:
 
 private:
 
-	std::shared_ptr<frequent_pattern_tree_node> root_ = std::make_shared<frequent_pattern_tree_node>(T{});
+	void create_item_link(const std::shared_ptr<frequent_pattern_tree_node>& node) {
+		if (!item_links_.count(node->value)) {
+			item_links_[node->value] = {node};
+		} else {
+			item_links_[node->value].push_back(node);
+		}
+	}
 };
