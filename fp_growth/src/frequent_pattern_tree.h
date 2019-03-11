@@ -7,8 +7,6 @@
 #include <utility>
 #include <vector>
 
-class frequent_pattern_tree_iterator;
-
 template <typename T>
 class frequent_pattern_tree final {
 
@@ -31,30 +29,32 @@ public:
 
 	class frequent_pattern_tree_iterator final {
 
-		std::queue<std::shared_ptr<frequent_pattern_tree_node>> queue_;
+		std::queue<std::shared_ptr<frequent_pattern_tree_node>> item_queue_;
 
 	public:
 
 		explicit frequent_pattern_tree_iterator(const frequent_pattern_tree fpt) {
 			for (const auto& [_, child] : fpt.root_->children) {
-				queue_.push(child);
+				item_queue_.push(child);
 			}
 		}
 
 		operator bool() const {
-			return !queue_.empty();
+			return !item_queue_.empty();
 		}
 
 		std::pair<T, uint32_t> operator*() const {
-			if (queue_.empty()) throw std::exception{"Attempted to dereference an invalid iterator"};
-			return std::make_pair(queue_.front()->value, queue_.front()->count);
+			if (item_queue_.empty()) {
+				throw std::exception{"Attempted to dereference an invalid iterator"};
+			}
+			return std::make_pair(item_queue_.front()->value, item_queue_.front()->count);
 		}
 
 		void operator++() {
-			for (const auto& [_, child] : queue_.front()->children) {
-				queue_.push(child);
+			for (const auto& [_, child] : item_queue_.front()->children) {
+				item_queue_.push(child);
 			}
-			queue_.pop();
+			item_queue_.pop();
 		}
 	};
 
