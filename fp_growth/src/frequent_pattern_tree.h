@@ -3,7 +3,7 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <queue>
+#include <stack>
 #include <utility>
 #include <vector>
 
@@ -27,37 +27,6 @@ class frequent_pattern_tree final {
 
 public:
 
-	class frequent_pattern_tree_iterator final {
-
-		std::queue<std::shared_ptr<frequent_pattern_tree_node>> item_queue_;
-
-	public:
-
-		explicit frequent_pattern_tree_iterator(const frequent_pattern_tree& fpt) {
-			for (const auto& [_, child] : fpt.root_->children) {
-				item_queue_.push(child);
-			}
-		}
-
-		operator bool() const {
-			return !item_queue_.empty();
-		}
-
-		std::pair<T, uint32_t> operator*() const {
-			if (item_queue_.empty()) {
-				throw std::exception{"Attempted to dereference an invalid iterator"};
-			}
-			return std::make_pair(item_queue_.front()->value, item_queue_.front()->count);
-		}
-
-		void operator++() {
-			for (const auto& [_, child] : item_queue_.front()->children) {
-				item_queue_.push(child);
-			}
-			item_queue_.pop();
-		}
-	};
-
 	explicit frequent_pattern_tree(const std::vector<std::set<T>>& itemsets = {}) {
 		for (const auto& itemset : itemsets) {
 			insert(itemset);
@@ -71,7 +40,7 @@ public:
 		for (const auto& item : itemset) {
 			if (!iterator->children.count(item)) {
 				iterator->children[item] = std::make_shared<frequent_pattern_tree_node>(item, iterator);
-				create_item_link(iterator->children[item]);
+				create_link(iterator->children[item]);
 			} else {
 				++iterator->children[item]->count;
 			}
@@ -79,9 +48,61 @@ public:
 		}
 	}
 
+	class frequent_pattern_tree_iterator final {
+
+		std::stack<std::shared_ptr<frequent_pattern_tree_node>> item_stack_;
+
+	public:
+
+		frequent_pattern_tree_iterator() = default;
+
+		explicit frequent_pattern_tree_iterator(const frequent_pattern_tree& fpt) {
+
+			std::for_each(
+				fpt.root_->children.rbegin(),
+				fpt.root_->children.rend(),
+				[&](const auto& map_entry) { item_stack_.push(map_entry.second); });
+		}
+
+		operator bool() const {
+			return !item_stack_.empty();
+		}
+
+		std::pair<T, uint32_t> operator*() const {
+			return std::make_pair(item_stack_.top()->value, item_stack_.top()->count);
+		}
+
+		void operator++() {
+
+			const auto current = item_stack_.top();
+			item_stack_.pop();
+
+			std::for_each(
+				current->children.rbegin(),
+				current->children.rend(),
+				[&](const auto& map_entry) { item_stack_.push(map_entry.second); });
+		}
+
+		bool operator==(const frequent_pattern_tree_iterator& fpt) {
+			return item_stack_ == fpt.item_stack_;
+		}
+
+		bool operator!=(const frequent_pattern_tree_iterator& fpt) {
+			return !(*this == fpt);
+		}
+	};
+
+	frequent_pattern_tree_iterator begin() const {
+		return frequent_pattern_tree_iterator{*this};
+	}
+
+	frequent_pattern_tree_iterator end() const {
+		return frequent_pattern_tree_iterator{};
+	}
+
 private:
 
-	void create_item_link(const std::shared_ptr<frequent_pattern_tree_node>& node) {
+	void create_link(const std::shared_ptr<frequent_pattern_tree_node>& node) {
 		if (!item_links_.count(node->value)) {
 			item_links_[node->value] = {node};
 		} else {
