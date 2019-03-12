@@ -1,5 +1,4 @@
 #include <sstream>
-#include <vector>
 
 #include "catch.h"
 #include "frequent_pattern_tree.h"
@@ -10,7 +9,8 @@ namespace {
 
 		std::ostringstream oss;
 
-		for (const auto& [value, count] : fpt) {
+		for (auto iterator = fpt.begin(); iterator != fpt.end(); ++iterator) {
+			const auto& [value, count] = *iterator;
 			oss << value << ":" << count << " ";
 		}
 
@@ -25,36 +25,36 @@ TEST_CASE("FP-Tree construction", "[frequent_pattern_tree]") {
 		REQUIRE(to_string(fpt).empty());
 	}
 
-	SECTION("Creating an FP-tree from a single itemset") {
-		const std::vector<std::set<std::string>> itemsets{{"A", "B", "C", "D", "E"}};
+	SECTION("Creating an FP-tree from a single itemset in reverse lexicographical order") {
+		const std::vector<std::unordered_set<std::string>> itemsets{{"E", "A", "C", "B", "D"}};
 		const frequent_pattern_tree<std::string> fpt{itemsets};
 		REQUIRE(to_string(fpt) == "A:1 B:1 C:1 D:1 E:1 ");
 	}
 
-	SECTION("Creating an FP-tree from multiple disjoint itemsets") {
-		const std::vector<std::set<std::string>> itemsets{
-			{"A", "B", "C", "D", "E"},
-			{"F", "G", "H"},
-			{"I", "J", "K", "L"}
+	SECTION("Creating an FP-tree from multiple disjoint itemsets in lexicographical order") {
+		const std::vector<std::unordered_set<std::string>> itemsets{
+			{"E", "A", "C", "B", "D"},
+			{"G", "H", "F"},
+			{"K", "I", "J", "L"}
 		};
 		const frequent_pattern_tree<std::string> fpt{itemsets};
 		REQUIRE(to_string(fpt) == "A:1 B:1 C:1 D:1 E:1 F:1 G:1 H:1 I:1 J:1 K:1 L:1 ");
 	}
 
 	SECTION("Creating an FP-tree from multiple overlapping itemsets") {
-		const std::vector<std::set<std::string>> itemsets{
+		const std::vector<std::unordered_set<std::string>> itemsets{
+			{"B", "C", "D"},
+			{"B", "C", "D", "E"},
+			{"D", "E"},
 			{"A", "B", "C", "D"},
-			{"A", "B", "E", "F"},
-			{"A", "E", "F"},
-			{"A", "E", "F", "G"},
-			{"B", "C"}
+			{"A", "B", "D"}
 		};
 		const frequent_pattern_tree<std::string> fpt{itemsets};
-		REQUIRE(to_string(fpt) == "A:4 B:2 C:1 D:1 E:1 F:1 E:2 F:2 G:1 B:1 C:1 ");
+		REQUIRE(to_string(fpt) == "D:5 B:4 A:1 C:3 A:1 E:1 E:1 ");
 	}
 
 	SECTION("Creating an FP-tree with duplicate items") {
-		const std::vector<std::set<std::string>> itemsets{{"A", "A", "A", "B", "B", "B", "C", "C", "C"}};
+		const std::vector<std::unordered_set<std::string>> itemsets{{"A", "A", "A", "B", "B", "B", "C", "C", "C"}};
 		const frequent_pattern_tree<std::string> fpt{itemsets};
 		REQUIRE(to_string(fpt) == "A:1 B:1 C:1 ");
 	}

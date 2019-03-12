@@ -4,36 +4,38 @@
 #include <memory>
 #include <set>
 #include <stack>
-#include <utility>
 #include <vector>
+#include <unordered_set>
 
 template <typename T>
 class frequent_pattern_tree final {
 
 	struct frequent_pattern_tree_node final {
 
-		T value;
+		std::unique_ptr<T> value;
 		uint32_t count = 1;
 		std::shared_ptr<frequent_pattern_tree_node> parent;
 		std::map<T, std::shared_ptr<frequent_pattern_tree_node>> children;
 
-		explicit frequent_pattern_tree_node(T value, std::shared_ptr<frequent_pattern_tree_node> parent = nullptr)
-			: value{std::move(value)},
+		frequent_pattern_tree_node() = default;
+
+		frequent_pattern_tree_node(const T& value, std::shared_ptr<frequent_pattern_tree_node> parent)
+			: value{std::make_unique<T>(value)},
 			  parent{std::move(parent)} {}
 	};
 
-	std::shared_ptr<frequent_pattern_tree_node> root_ = std::make_shared<frequent_pattern_tree_node>(T{});
-	std::map<T, std::vector<std::shared_ptr<frequent_pattern_tree_node>>> item_links_;
+	std::shared_ptr<frequent_pattern_tree_node> root_ = std::make_shared<frequent_pattern_tree_node>();
+	std::unordered_map<T, std::vector<std::shared_ptr<frequent_pattern_tree_node>>> node_links_;
 
 public:
 
-	explicit frequent_pattern_tree(const std::vector<std::set<T>>& itemsets = {}) {
-		for (const auto& itemset : itemsets) {
+	explicit frequent_pattern_tree(const std::vector<std::unordered_set<T>>& itemsets = {}) {
+		for (const auto& itemset : get_ordered_itemsets(itemsets)) {
 			insert(itemset);
 		}
 	}
 
-	void insert(const std::set<T>& itemset) {
+	void insert(const std::set<T, std::function<bool(T, T)>>& itemset) {
 
 		auto iterator = root_;
 
@@ -69,7 +71,7 @@ public:
 		}
 
 		std::pair<T, uint32_t> operator*() const {
-			return std::make_pair(item_stack_.top()->value, item_stack_.top()->count);
+			return std::make_pair(*item_stack_.top()->value, item_stack_.top()->count);
 		}
 
 		void operator++() {
@@ -102,11 +104,48 @@ public:
 
 private:
 
+	std::unordered_map<T, uint32_t> get_frequency_counts(const std::vector<std::unordered_set<T>>& itemsets) {
+
+		std::unordered_map<T, uint32_t> frequency_counts;
+
+		for (const auto& itemset : itemsets) {
+			for (const auto& item : itemset) {
+				++frequency_counts[item];
+			}
+		}
+
+		return frequency_counts;
+	}
+
+	std::vector<std::set<T, std::function<bool(T, T)>>> get_ordered_itemsets(
+		const std::vector<std::unordered_set<T>>& itemsets) {
+
+		const auto frequency_counts = get_frequency_counts(itemsets);
+		const auto set_comparator = [&](const T& a, const T& b) {
+			return frequency_counts.at(a) == frequency_counts.at(b)
+				       ? a < b
+				       : frequency_counts.at(a) > frequency_counts.at(b);
+		};
+
+		std::vector<std::set<T, std::function<bool(T, T)>>> ordered_itemsets;
+		ordered_itemsets.reserve(itemsets.size());
+
+		for (const auto& itemset : itemsets) {
+			std::set<T, std::function<bool(T, T)>> ordered_itemset(set_comparator);
+			for (const auto& item : itemset) {
+				ordered_itemset.insert(item);
+			}
+			ordered_itemsets.push_back(ordered_itemset);
+		}
+
+		return ordered_itemsets;
+	}
+
 	void create_link(const std::shared_ptr<frequent_pattern_tree_node>& node) {
-		if (!item_links_.count(node->value)) {
-			item_links_[node->value] = {node};
+		if (!node_links_.count(*node->value)) {
+			node_links_[*node->value] = {node};
 		} else {
-			item_links_[node->value].push_back(node);
+			node_links_[*node->value].push_back(node);
 		}
 	}
 };
