@@ -53,7 +53,7 @@ private:
 		const std::unordered_set<T>& itemset,
 		const std::unordered_map<T, uint32_t>& frequency_counts) {
 
-		const auto set_comparator = [&](const T& a, const T& b) {
+		static const auto set_comparator = [&](const T& a, const T& b) {
 			return frequency_counts.at(a) == frequency_counts.at(b)
 				       ? a < b
 				       : frequency_counts.at(a) > frequency_counts.at(b);
