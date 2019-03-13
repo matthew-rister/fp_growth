@@ -21,8 +21,6 @@
   <ItemGroup>
     <ClInclude Include="extern\catch.h" />
     <ClInclude Include="src\frequent_pattern_tree.h" />
-    <ClInclude Include="src\frequent_pattern_tree_iterator.h" />
-    <ClInclude Include="src\frequent_pattern_tree_node.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />

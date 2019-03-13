@@ -26,7 +26,5 @@
     <ClInclude Include="src\frequent_pattern_tree.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\frequent_pattern_tree_iterator.h" />
-    <ClInclude Include="src\frequent_pattern_tree_node.h" />
   </ItemGroup>
 </Project>

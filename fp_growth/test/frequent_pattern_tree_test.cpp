@@ -59,3 +59,24 @@ TEST_CASE("FP-Tree construction", "[frequent_pattern_tree]") {
 		REQUIRE(to_string(fpt) == "A:1 B:1 C:1 ");
 	}
 }
+
+TEST_CASE("Frequent Itemset Generation", "[frequent_pattern_tree]") {
+
+	SECTION("this is a test") {
+		const std::vector<std::unordered_set<std::string>> itemset{
+			{"A", "B", "C"},
+			{"A", "C", "D"},
+			{"B", "D", "E"},
+			{"F", "G"}
+		};
+
+		const frequent_pattern_tree<std::string> fpt{itemset};
+		const auto frequent_itemsets = fpt.get_frequent_itemsets(2);
+
+		REQUIRE(frequent_itemsets.size() == 4);
+		REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"A"}) != frequent_itemsets.end());
+		REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"B"}) != frequent_itemsets.end());
+		REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"C"}) != frequent_itemsets.end());
+		REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"D"}) != frequent_itemsets.end());
+	}
+}
