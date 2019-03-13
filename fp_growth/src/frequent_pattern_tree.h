@@ -1,8 +1,8 @@
 #pragma once
 
+#include <iterator>
 #include <map>
 #include <memory>
-#include <numeric>
 #include <set>
 #include <stack>
 #include <unordered_set>
@@ -15,7 +15,6 @@ class frequent_pattern_tree final {
 	struct frequent_pattern_tree_node final {
 
 		std::unique_ptr<T> value;
-		uint32_t support = 1;
 		std::shared_ptr<frequent_pattern_tree_node> parent;
 		std::map<T, std::shared_ptr<frequent_pattern_tree_node>> children;
 
@@ -27,82 +26,96 @@ class frequent_pattern_tree final {
 	};
 
 	std::shared_ptr<frequent_pattern_tree_node> root_;
-	std::unordered_set<T> items_;
+	std::unordered_map<T, uint32_t> item_support_;
 	std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>> item_nodes_;
 
 public:
 
 	explicit frequent_pattern_tree(const std::vector<std::unordered_set<T>>& itemsets = {})
-		: root_{std::make_shared<frequent_pattern_tree_node>()} {
-
-		const auto frequency_counts = get_frequency_counts(itemsets);
+		: root_{std::make_shared<frequent_pattern_tree_node>()},
+		  item_support_{get_item_support(itemsets)} {
 
 		for (const auto& itemset : itemsets) {
-			insert(itemset, frequency_counts);
+			insert(itemset);
 		}
 	}
 
-	std::vector<std::unordered_set<T>> get_frequent_itemsets(const uint32_t min_support) const {
+	static std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>> get_conditional_item_nodes(
+		const T& target,
+		const std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>>& item_nodes) {
+
+		const auto item_range = item_nodes.equal_range(target);
+		std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>> conditional_item_nodes;
+
+		for (auto iterator = item_range.first; iterator != item_range.second; ++iterator) {
+			for (auto node = iterator->second->parent; node->parent; node = node->parent) {
+				conditional_item_nodes.insert(std::make_pair(*node->value, node));
+			}
+		}
+
+		return conditional_item_nodes;
+	}
+
+	std::vector<std::unordered_set<T>> get_frequent_itemsets(const uint32_t minimum_support) const {
+
+		std::vector<T> frequent_items;
+		for (const auto& [item, support] : item_support_) {
+			if (support >= minimum_support) {
+				frequent_items.push_back(item);
+			}
+		}
+
+		std::sort(frequent_items.begin(), frequent_items.end(), [&](const T& a, const T& b) {
+			const auto a_support = item_support_.at(a);
+			const auto b_support = item_support_.at(b);
+			return a_support == b_support ? a > b : a_support < b_support;
+		});
 
 		std::vector<std::unordered_set<T>> frequent_itemsets;
+		for (size_t i = 0; i < frequent_items.size(); ++i) {
+			const auto& current = frequent_items[i];
+			frequent_itemsets.push_back({current});
+			const auto conditional_node_list = get_conditional_item_nodes(current, item_nodes_);
 
-		for (const auto& item : items_) {
-
-			const auto [range_begin, range_end] = item_nodes_.equal_range(item);
-			const auto support = std::reduce(range_begin, range_end, 0u, [](const auto sum, const auto& map_entry) {
-	             return sum + map_entry.second->support;
-	         });
-
-			if (support >= min_support) {
-				frequent_itemsets.push_back({ item });
+			for (auto j = i + 1; j < frequent_items.size(); ++j) {
+				const auto& target = frequent_items[j];
+				const auto itemsets = get_frequent_itemsets(frequent_itemsets.back(), target, conditional_node_list,
+				                                            minimum_support);
+				frequent_itemsets.insert(frequent_itemsets.end(), itemsets.begin(), itemsets.end());
 			}
 		}
 
 		return frequent_itemsets;
 	}
 
-	//std::unordered_map<T, std::vector<std::shared_ptr<frequent_pattern_tree_node<T>>>> get_conditional_item_nodes(
-	//	const T& target,
-	//	const std::unordered_map<T, std::vector<std::shared_ptr<frequent_pattern_tree_node<T>>>>& item_nodes) {
+	std::vector<std::unordered_set<T>> get_frequent_itemsets(
+		const std::unordered_set<T>& current,
+		const T& target,
+		const std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>>& item_nodes,
+		const uint32_t minimum_support) const {
 
-	//	std::unordered_map<T, std::vector<std::shared_ptr<frequent_pattern_tree_node<T>>>> conditional_item_nodes;
+		std::vector<std::unordered_set<T>> frequent_itemsets;
 
-	//	if (item_nodes.contains(target)) {
-	//		for (const auto& node : item_nodes.at(target)) {
-	//			for (const auto iterator = node->parent; iterator->parent; iterator = iterator->parent) {
-	//				conditional_item_nodes[*iterator->value].push_back(iterator);
-	//			}
-	//		}
-	//	}
+		if (item_nodes.count(target) >= minimum_support) {
+			frequent_itemsets.push_back(current);
+			frequent_itemsets.back().insert(target);
 
-	//	return conditional_item_nodes;
-	//}
+			std::unordered_set<T> remaining_items;
 
-	//void get_frequent_itemsets(
-	//	const std::set<T>& frequent_itemset,
-	//	const T& target,
-	//	const std::unordered_map<T, std::vector<std::shared_ptr<frequent_pattern_tree_node<T>>>>& node_list,
-	//	const uint32_t minimum_support) {
+			for (const auto& [item, _] : item_nodes) {
+				if (item != target && !remaining_items.count(item)) {
+					remaining_items.insert(item);
 
-	//	if (!node_list.contains(target)) return {};
+					const auto conditional_node_list = get_conditional_item_nodes(item, item_nodes);
+					const auto itemsets = get_frequent_itemsets(frequent_itemsets.back(), item, conditional_node_list,
+					                                            minimum_support);
+					frequent_itemsets.insert(frequent_itemsets.end(), itemsets.begin(), itemsets.end());
+				}
+			}
+		}
 
-	//	std::vector<std::set<T>> frequent_itemsets{frequent_itemset};
-	//	const auto conditional_node_list = get_conditional_item_nodes(target, node_list);
-
-	//	for (const auto& [item, nodes] : conditional_node_list) {
-	//		if (nodes.size() >= minimum_support) {
-	//			const std::set<T> clone{frequent_itemset};
-	//			clone.insert(item);
-	//			frequent_itemsets.push_back(clone);
-
-	//			for (const auto& [candidate, _] : conditional_node_list) {
-	//				if (candidate != item) {
-	//					const auto sub_frequent_itemsets = get_frequent_itemsets(clone, candidate, conditional_node_list, minimum_support);
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
+		return frequent_itemsets;
+	}
 
 	class frequent_pattern_tree_iterator final {
 
@@ -122,8 +135,8 @@ public:
 			return !item_stack_.empty();
 		}
 
-		std::pair<T, uint32_t> operator*() const {
-			return std::make_pair(*item_stack_.top()->value, item_stack_.top()->support);
+		T operator*() const {
+			return *item_stack_.top()->value;
 		}
 
 		void operator++() {
@@ -155,44 +168,36 @@ public:
 
 private:
 
-	static std::unordered_map<T, uint32_t> get_frequency_counts(const std::vector<std::unordered_set<T>>& itemsets) {
+	static std::unordered_map<T, uint32_t> get_item_support(const std::vector<std::unordered_set<T>>& itemsets) {
 
-		std::unordered_map<T, uint32_t> frequency_counts;
+		std::unordered_map<T, uint32_t> item_support;
 
 		for (const auto& itemset : itemsets) {
 			for (const auto& item : itemset) {
-				++frequency_counts[item];
+				++item_support[item];
 			}
 		}
 
-		return frequency_counts;
+		return item_support;
 	}
 
-	static std::set<T, std::function<bool(T, T)>> get_ordered_itemset(
-		const std::unordered_set<T>& itemset,
-		const std::unordered_map<T, uint32_t>& frequency_counts) {
-
-		const auto order_by_frequency = [&](const T& a, const T& b) {
-			return frequency_counts.at(a) == frequency_counts.at(b)
-				       ? a < b
-				       : frequency_counts.at(a) > frequency_counts.at(b);
+	std::set<T, std::function<bool(T, T)>> get_ordered_itemset(const std::unordered_set<T>& itemset) const {
+		return std::set<T, std::function<bool(T, T)>>{
+			itemset.begin(), itemset.end(), [&](const T& a, const T& b) {
+				return item_support_.at(a) == item_support_.at(b) ? a < b : item_support_.at(a) > item_support_.at(b);
+			}
 		};
-
-		return std::set<T, std::function<bool(T, T)>>{itemset.begin(), itemset.end(), order_by_frequency};
 	}
 
-	void insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& frequency_counts) {
+	void insert(const std::unordered_set<T>& itemset) {
 
 		auto iterator = root_;
 
-		for (const auto& item : get_ordered_itemset(itemset, frequency_counts)) {
+		for (const auto& item : get_ordered_itemset(itemset)) {
 			if (!iterator->children.count(item)) {
 				iterator->children[item] = std::make_shared<frequent_pattern_tree_node>(item, iterator);
 				item_nodes_.insert(std::make_pair(item, iterator->children[item]));
-			} else {
-				++iterator->children[item]->support;
 			}
-			items_.insert(item);
 			iterator = iterator->children[item];
 		}
 	}
