@@ -49,9 +49,9 @@ private:
 		return frequency_counts;
 	}
 
-	std::set<T, std::function<bool(T, T)>> get_ordered_itemset(
+	static std::set<T, std::function<bool(T, T)>> get_ordered_itemset(
 		const std::unordered_set<T>& itemset,
-		const std::unordered_map<T, uint32_t>& frequency_counts) const {
+		const std::unordered_map<T, uint32_t>& frequency_counts) {
 
 		static const auto set_comparator = [&](const T& a, const T& b) {
 			return frequency_counts.at(a) == frequency_counts.at(b)
