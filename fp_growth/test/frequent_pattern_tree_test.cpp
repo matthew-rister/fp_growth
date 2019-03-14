@@ -293,13 +293,13 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 			}
 
 			THEN("The frequent itemsets contains the itemset {'C', 'B'}") {
-				const auto itemset = std::unordered_set<char>{ 'C', 'B' };
+				const auto itemset = std::unordered_set<char>{'C', 'B'};
 				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
 				REQUIRE(iterator != frequent_itemsets.end());
 			}
 
 			THEN("The frequent itemsets contains the itemset {'C', 'D'}") {
-				const auto itemset = std::unordered_set<char>{ 'C', 'D' };
+				const auto itemset = std::unordered_set<char>{'C', 'D'};
 				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
 				REQUIRE(iterator != frequent_itemsets.end());
 			}
@@ -323,7 +323,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 			}
 
 			THEN("The frequent itemsets contains the itemset {'E', 'D'}") {
-				const auto itemset = std::unordered_set<char>{ 'E', 'D' };
+				const auto itemset = std::unordered_set<char>{'E', 'D'};
 				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
 				REQUIRE(iterator != frequent_itemsets.end());
 			}
