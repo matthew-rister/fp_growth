@@ -15,6 +15,7 @@ class frequent_pattern_tree final {
 	struct frequent_pattern_tree_node final {
 
 		std::unique_ptr<T> value;
+		uint32_t support = 1;
 		std::shared_ptr<frequent_pattern_tree_node> parent;
 		std::map<T, std::shared_ptr<frequent_pattern_tree_node>> children;
 
@@ -135,8 +136,8 @@ public:
 			return !item_stack_.empty();
 		}
 
-		T operator*() const {
-			return *item_stack_.top()->value;
+		std::pair<T, uint32_t> operator*() const {
+			return std::make_pair(*item_stack_.top()->value, item_stack_.top()->support);
 		}
 
 		void operator++() {
@@ -197,6 +198,8 @@ private:
 			if (!iterator->children.count(item)) {
 				iterator->children[item] = std::make_shared<frequent_pattern_tree_node>(item, iterator);
 				item_nodes_.insert(std::make_pair(item, iterator->children[item]));
+			} else {
+				++iterator->children[item]->support;
 			}
 			iterator = iterator->children[item];
 		}
