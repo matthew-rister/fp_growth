@@ -3,96 +3,330 @@
 #include "catch.h"
 #include "frequent_pattern_tree.h"
 
-namespace {
+SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 
-	std::string to_string(const frequent_pattern_tree<std::string>& fpt) {
+	GIVEN("A frequent pattern tree constructed from an empty itemset") {
+		const frequent_pattern_tree<char> fpt;
 
-		std::ostringstream oss;
+		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
+			const auto frequent_itemsets = fpt.get_frequent_itemsets(1);
 
-		for (auto iterator = fpt.begin(); iterator != fpt.end(); ++iterator) {
-			const auto& [item, support] = *iterator;
-			oss << item << ":" << support << " ";
+			THEN("No frequent itemsets exist") {
+				REQUIRE(frequent_itemsets.empty());
+			}
+		}
+	}
+
+	GIVEN("A frequent pattern tree constructed from a single itemset containing a one element") {
+		const std::vector<std::unordered_set<char>> itemsets{{'A'}};
+		const frequent_pattern_tree<char> fpt{itemsets};
+
+		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
+			const auto frequent_itemsets = fpt.get_frequent_itemsets(2);
+
+			THEN("No frequent itemsets exist") {
+				REQUIRE(frequent_itemsets.empty());
+			}
 		}
 
-		return oss.str();
-	}
-}
+		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
+			const auto frequent_itemsets = fpt.get_frequent_itemsets(1);
 
-TEST_CASE("FP-Tree construction", "[frequent_pattern_tree]") {
+			THEN("The is size of the frequent itemsets is one") {
+				REQUIRE(frequent_itemsets.size() == 1);
+			}
 
-	SECTION("Creating an FP-tree from an empty list") {
-		const frequent_pattern_tree<std::string> fpt;
-		REQUIRE(to_string(fpt).empty());
-	}
-
-	SECTION("Creating an FP-tree from a single itemset in reverse lexicographical order") {
-		const std::vector<std::unordered_set<std::string>> itemsets{{"E", "A", "C", "B", "D"}};
-		const frequent_pattern_tree<std::string> fpt{itemsets};
-		REQUIRE(to_string(fpt) == "A:1 B:1 C:1 D:1 E:1 ");
+			THEN("The frequent itemsets contains the itemset {'A'}") {
+				const auto itemset = std::unordered_set<char>{'A'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+		}
 	}
 
-	SECTION("Creating an FP-tree from multiple disjoint itemsets in lexicographical order") {
-		const std::vector<std::unordered_set<std::string>> itemsets{
-			{"E", "A", "C", "B", "D"},
-			{"G", "H", "F"},
-			{"K", "I", "J", "L"}
+	GIVEN("A frequent pattern tree constructed from a single itemset containing multiple unique elements") {
+		const std::vector<std::unordered_set<char>> itemsets{{'A', 'B', 'C'}};
+		const frequent_pattern_tree<char> fpt{itemsets};
+
+		WHEN("Frequent itemsets are extracted with minimum support of 2") {
+			const auto frequent_itemsets = fpt.get_frequent_itemsets(2);
+
+			THEN("No frequent itemsets exist") {
+				REQUIRE(frequent_itemsets.empty());
+			}
+		}
+
+		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
+			const auto frequent_itemsets = fpt.get_frequent_itemsets(1);
+
+			THEN("The size of the frequent itemsets equal to the number of unique combinations in the set") {
+				REQUIRE(frequent_itemsets.size() == 7);
+			}
+
+			THEN("The frequent itemsets contains the itemset {'A'}") {
+				const auto itemset = std::unordered_set<char>{'A'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B'}") {
+				const auto itemset = std::unordered_set<char>{'B'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'C'}") {
+				const auto itemset = std::unordered_set<char>{'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'A', 'B'}") {
+				const auto itemset = std::unordered_set<char>{'A', 'B'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'A', 'C'}") {
+				const auto itemset = std::unordered_set<char>{'A', 'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B', 'C'}") {
+				const auto itemset = std::unordered_set<char>{'B', 'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'A', 'B', 'C'}") {
+				const auto itemset = std::unordered_set<char>{'A', 'B', 'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+		}
+	}
+
+	GIVEN("A frequent pattern tree constructed from multiple itemsets containing one element") {
+		const std::vector<std::unordered_set<char>> itemsets{{'A'}, {'B'}, {'C'}};
+		const frequent_pattern_tree<char> fpt{itemsets};
+
+		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
+			const auto frequent_itemsets = fpt.get_frequent_itemsets(2);
+
+			THEN("No frequent itemsets exist") {
+				REQUIRE(frequent_itemsets.empty());
+			}
+		}
+
+		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
+			const auto frequent_itemsets = fpt.get_frequent_itemsets(1);
+
+			THEN("The size of the frequent itemsets is equal to the number of unique items") {
+				REQUIRE(frequent_itemsets.size() == 3);
+			}
+
+			THEN("The frequent itemsets contains the itemset {'A'}") {
+				const auto itemset = std::unordered_set<char>{'A'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B'}") {
+				const auto itemset = std::unordered_set<char>{'B'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'C'}") {
+				const auto itemset = std::unordered_set<char>{'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+		}
+	}
+
+	GIVEN("A frequent pattern tree constructed from multiple itemsets containing multiple unique elements") {
+		const std::vector<std::unordered_set<char>> itemsets{{'A', 'B', 'C'}, {'D', 'E'}, {'F'}};
+		const frequent_pattern_tree<char> fpt{itemsets};
+
+		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
+			const auto frequent_itemsets = fpt.get_frequent_itemsets(2);
+
+			THEN("No frequent itemsets exist") {
+				REQUIRE(frequent_itemsets.empty());
+			}
+		}
+
+		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
+			const auto frequent_itemsets = fpt.get_frequent_itemsets(1);
+
+			THEN("The number of frequent itemsets is equal to the number of unique combinations in each itemset") {
+				REQUIRE(frequent_itemsets.size() == 11);
+			}
+
+			THEN("The frequent itemsets contains the itemset {'A'}") {
+				const auto itemset = std::unordered_set<char>{'A'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B'}") {
+				const auto itemset = std::unordered_set<char>{'B'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'C'}") {
+				const auto itemset = std::unordered_set<char>{'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'A', 'B'}") {
+				const auto itemset = std::unordered_set<char>{'A', 'B'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'A', 'C'}") {
+				const auto itemset = std::unordered_set<char>{'A', 'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B', 'C'}") {
+				const auto itemset = std::unordered_set<char>{'B', 'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'A', 'B', 'C'}") {
+				const auto itemset = std::unordered_set<char>{'A', 'B', 'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'D'}") {
+				const auto itemset = std::unordered_set<char>{'E'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'E'}") {
+				const auto itemset = std::unordered_set<char>{'E'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'D', 'E'}") {
+				const auto itemset = std::unordered_set<char>{'D', 'E'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'F'}") {
+				const auto itemset = std::unordered_set<char>{'F'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+		}
+	}
+
+	GIVEN("A frequent pattern tree constructed from multiple itemsets with overlapping elements") {
+		const std::vector<std::unordered_set<char>> itemsets{
+			{'B', 'C', 'D'},
+			{'B', 'C', 'D', 'E'},
+			{'D', 'E'},
+			{'A', 'B', 'C', 'D'},
+			{'A', 'B', 'D'}
 		};
-		const frequent_pattern_tree<std::string> fpt{itemsets};
-		REQUIRE(to_string(fpt) == "A:1 B:1 C:1 D:1 E:1 F:1 G:1 H:1 I:1 J:1 K:1 L:1 ");
-	}
+		const frequent_pattern_tree<char> fpt{itemsets};
 
-	SECTION("Creating an FP-tree from multiple overlapping itemsets") {
-		const std::vector<std::unordered_set<std::string>> itemsets{
-			{"B", "C", "D"},
-			{"B", "C", "D", "E"},
-			{"D", "E"},
-			{"A", "B", "C", "D"},
-			{"A", "B", "D"}
-		};
-		const frequent_pattern_tree<std::string> fpt{itemsets};
-		REQUIRE(to_string(fpt) == "D:5 B:4 A:1 C:3 A:1 E:1 E:1 ");
-	}
+		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
+			const auto frequent_itemsets = fpt.get_frequent_itemsets(2);
 
-	SECTION("Creating an FP-tree with duplicate items") {
-		const std::vector<std::unordered_set<std::string>> itemsets{{"A", "A", "A", "B", "B", "B", "C", "C", "C"}};
-		const frequent_pattern_tree<std::string> fpt{itemsets};
-		REQUIRE(to_string(fpt) == "A:1 B:1 C:1 ");
-	}
-}
+			THEN("The size of the frequent itemsets is equal to the 13") {
+				REQUIRE(frequent_itemsets.size() == 13);
+			}
 
-TEST_CASE("Frequent Itemset Generation", "[frequent_pattern_tree]") {
+			THEN("The frequent itemsets contains the itemset {'A'}") {
+				const auto itemset = std::unordered_set<char>{'A'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
 
-	SECTION("this is a test") {
-		const std::vector<std::unordered_set<std::string>> itemset{
-			{"A", "B", "C", "D"},
-			{"A", "C", "D"},
-			{"A", "B", "D", "E"},
-			{"F", "G"}
-		};
+			THEN("The frequent itemsets contains the itemset {'A', 'B'}") {
+				const auto itemset = std::unordered_set<char>{'A', 'B'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
 
-		const frequent_pattern_tree<std::string> fpt{itemset};
-		const auto frequent_itemsets = fpt.get_frequent_itemsets(2);
+			THEN("The frequent itemsets contains the itemset {'A', 'D'}") {
+				const auto itemset = std::unordered_set<char>{'A', 'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
 
-	//	REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"A"}) !=
- //frequent_itemsets.end());
-	//	REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"B"}) !=
- //frequent_itemsets.end());
-	//	REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"C"}) !=
- //frequent_itemsets.end());
-	//	REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"D"}) !=
- //frequent_itemsets.end());
-	//	REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"A", "B"})
- //!= frequent_itemsets.end());
-	//	REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"A", "C"})
- //!= frequent_itemsets.end());
-	//	REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"A", "D"})
- //!= frequent_itemsets.end());
-	//	REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"B", "D"})
- //!= frequent_itemsets.end());
-	//	REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"C", "D"})
- //!= frequent_itemsets.end());
-	//	REQUIRE(std::find(frequent_itemsets.begin(), frequent_itemsets.end(), std::unordered_set<std::string>{"A", "B",
- //"D"}) != frequent_itemsets.end());
-	//	REQUIRE(frequent_itemsets.size() == 10);
+			THEN("The frequent itemsets contains the itemset {'A', 'B', 'D'}") {
+				const auto itemset = std::unordered_set<char>{'A', 'B', 'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B'}") {
+				const auto itemset = std::unordered_set<char>{'B'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B', 'D'}") {
+				const auto itemset = std::unordered_set<char>{'B', 'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'C'}") {
+				const auto itemset = std::unordered_set<char>{'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'C', 'B'}") {
+				const auto itemset = std::unordered_set<char>{ 'C', 'B' };
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'C', 'D'}") {
+				const auto itemset = std::unordered_set<char>{ 'C', 'D' };
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'C', 'B', 'D'}") {
+				const auto itemset = std::unordered_set<char>{'C', 'B', 'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'D'}") {
+				const auto itemset = std::unordered_set<char>{'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'E'}") {
+				const auto itemset = std::unordered_set<char>{'E'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'E', 'D'}") {
+				const auto itemset = std::unordered_set<char>{ 'E', 'D' };
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+		}
 	}
 }
