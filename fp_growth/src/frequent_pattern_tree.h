@@ -37,10 +37,10 @@ public:
 
 	explicit FrequentPatternTree(const std::vector<std::unordered_set<T>>& itemsets = {}) {
 
-		std::unordered_map<T, uint32_t> item_support = GetSupportByItem(itemsets);
+		std::unordered_map<T, uint32_t> support_by_item = GetSupportByItem(itemsets);
 
 		for (const auto& itemset : itemsets) {
-			Insert(itemset, item_support);
+			Insert(itemset, support_by_item);
 		}
 	}
 
