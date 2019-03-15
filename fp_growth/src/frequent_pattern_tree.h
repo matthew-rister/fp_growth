@@ -110,7 +110,7 @@ private:
 	 * \param item_nodes A multimap containing references to nodes by type.
 	 * \return The node if present in the multimap, otherwise \c nullptr. \c
 	 */
-	static std::shared_ptr<FrequentPatternTreeNode> FindItemNodeInMap(
+	static std::shared_ptr<FrequentPatternTreeNode> FindItemNodeInMultimap(
 		const FrequentPatternTreeNode& node,
 		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
@@ -161,7 +161,6 @@ private:
 		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
 		const auto item_range = item_nodes.equal_range(item);
-
 		return std::reduce(item_range.first, item_range.second, 0u, [](const auto sum, const auto& map_entry) {
 			return sum + map_entry.second->support;
 		});
@@ -240,7 +239,7 @@ private:
 			for (auto node_iterator = target_iterator->second->parent; node_iterator->parent;
 			     node_iterator = node_iterator->parent) {
 
-				if (auto item_node = FindItemNodeInMap(*node_iterator, conditional_item_nodes); item_node) {
+				if (auto item_node = FindItemNodeInMultimap(*node_iterator, conditional_item_nodes); item_node) {
 					item_node->support += target_iterator->second->support;
 				} else {
 					item_node = std::make_shared<FrequentPatternTreeNode>(*node_iterator);
