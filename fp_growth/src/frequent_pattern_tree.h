@@ -54,7 +54,8 @@ public:
 			frequent_itemsets.push_back(current_itemset);
 
 			for (auto next_item = std::next(current_item); next_item != frequent_items.end(); ++next_item) {
-				const auto next_itemsets = GetFrequentItemsets(current_itemset, *next_item, conditional_item_nodes, minimum_support);
+				const auto next_itemsets = GetFrequentItemsets(
+					current_itemset, *next_item, conditional_item_nodes, minimum_support);
 				frequent_itemsets.insert(frequent_itemsets.end(), next_itemsets.begin(), next_itemsets.end());
 			}
 		}
@@ -121,7 +122,8 @@ private:
 		const auto target_range = item_nodes.equal_range(target);
 
 		for (auto target_iterator = target_range.first; target_iterator != target_range.second; ++target_iterator) {
-			for (const auto node_iterator = target_iterator->second->parent; node_iterator->parent; node_iterator = node_iterator->parent) {
+			for (const auto node_iterator = target_iterator->second->parent; node_iterator->parent;
+				node_iterator = node_iterator->parent) {
 
 				if (auto item_node = FindNodeInItemRange(node_iterator, conditional_item_nodes); item_node) {
 					item_node->support += target_iterator->second->support;
@@ -169,8 +171,10 @@ private:
 
 			for (const auto& [item, _] : conditional_item_nodes) {
 				if (!visited.count(item)) {
-					const auto next_conditional_item_nodes = GetConditionalItemNodes(next, conditional_item_nodes, minimum_support);
-					const auto next_itemsets = GetFrequentItemsets(next_itemset, item, next_conditional_item_nodes, minimum_support);
+					const auto next_conditional_item_nodes = GetConditionalItemNodes(
+						next, conditional_item_nodes, minimum_support);
+					const auto next_itemsets = GetFrequentItemsets(
+						next_itemset, item, next_conditional_item_nodes, minimum_support);
 					frequent_itemsets.insert(frequent_itemsets.end(), next_itemsets.begin(), next_itemsets.end());
 					visited.insert(item);
 				}
