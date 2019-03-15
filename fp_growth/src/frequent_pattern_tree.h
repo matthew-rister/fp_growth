@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iterator>
 #include <map>
 #include <memory>
@@ -123,7 +124,7 @@ private:
 
 		for (auto target_iterator = target_range.first; target_iterator != target_range.second; ++target_iterator) {
 			for (const auto node_iterator = target_iterator->second->parent; node_iterator->parent;
-				node_iterator = node_iterator->parent) {
+			     node_iterator = node_iterator->parent) {
 
 				if (auto item_node = FindNodeInItemRange(node_iterator, conditional_item_nodes); item_node) {
 					item_node->support += target_iterator->second->support;
@@ -142,9 +143,11 @@ private:
 	std::set<T, std::function<bool(T, T)>> GetFrequentItemsOrderedBySupportAscending(
 		const uint32_t minimum_support) const {
 
-		std::set<T, std::function<bool(T, T)>> frequent_items{[&](const T& a, const T& b) {
-			return item_support_.at(a) != item_support_.at(b) ? item_support_.at(a) < item_support_.at(b) : a > b;
-		}};
+		std::set<T, std::function<bool(T, T)>> frequent_items{
+			[&](const T& a, const T& b) {
+				return item_support_.at(a) != item_support_.at(b) ? item_support_.at(a) < item_support_.at(b) : a > b;
+			}
+		};
 
 		for (const auto& [item, support] : item_support_) {
 			if (support >= minimum_support) {
@@ -186,9 +189,11 @@ private:
 
 	std::set<T, std::function<bool(T, T)>> OrderItemsBySupportDescending(const std::unordered_set<T>& itemset) const {
 
-		return std::set<T, std::function<bool(T, T)>>{itemset.begin(), itemset.end(), [&](const T& a, const T& b) {
-			return item_support_.at(a) != item_support_.at(b) ? item_support_.at(a) > item_support_.at(b) : a < b;
-		}};
+		return std::set<T, std::function<bool(T, T)>>{
+			itemset.begin(), itemset.end(), [&](const T& a, const T& b) {
+				return item_support_.at(a) != item_support_.at(b) ? item_support_.at(a) > item_support_.at(b) : a < b;
+			}
+		};
 	}
 
 	void Insert(const std::unordered_set<T>& itemset) {
