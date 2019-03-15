@@ -11,31 +11,63 @@
 #include <utility>
 #include <vector>
 
+/**
+ * \brief Represents a tree used to efficiently store and extract frequent pattern itemsets.
+ * \tparam T The type used to represent each item.
+ */
 template <typename T>
 class FrequentPatternTree final {
 
+	/** \brief Represents an item node in the frequent pattern tree.*/
 	struct FrequentPatternTreeNode final {
 
+		/** \brief The number of created node instances. */
 		static inline uint32_t instance_count = 0;
+
+		/** \brief The node ID. */
 		uint32_t id;
-		std::optional<T> value;
+
+		/** \brief The node item value. */
+		std::optional<T> item;
+
+		/** \brief A reference to the parent node in the frequent pattern tree. */
 		std::shared_ptr<FrequentPatternTreeNode> parent;
+
+		/** \brief A mapping of child nodes references by item type. */
 		std::map<T, std::shared_ptr<FrequentPatternTreeNode>> children;
+
+
+		/**
+		 * \brief A count of the number of times this node item was encountered in an itemset
+		 *		  represented by the path to this node from the root of the frequent pattern tree.
+		 */
 		uint32_t support = 1;
 
+		/**
+		 * \brief Initializes a frequent pattern tree node.
+		 * \param item The node item.
+		 * \param parent A reference to the parent node.
+		 */
 		explicit FrequentPatternTreeNode(
-			std::optional<T> value = std::nullopt,
+			std::optional<T> item = std::nullopt,
 			std::shared_ptr<FrequentPatternTreeNode> parent = nullptr)
 			: id{++instance_count},
-			  value{std::move(value)},
+			  item{std::move(item)},
 			  parent{std::move(parent)} {}
 	};
 
+	/** \brief The root of the frequent pattern tree. */
 	std::shared_ptr<FrequentPatternTreeNode> root_ = std::make_shared<FrequentPatternTreeNode>();
+
+	/** \brief A mapping of nodes in the tree by item type. */
 	std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> item_nodes_;
 
 public:
 
+	/**
+	 * \brief Initializes a frequent pattern tree from a collection of itemsets.
+	 * \param itemsets A collection of itemsets to build the frequent pattern tree from.
+	 */
 	explicit FrequentPatternTree(const std::vector<std::unordered_set<T>>& itemsets = {}) {
 
 		std::unordered_map<T, uint32_t> support_by_item = GetSupportByItem(itemsets);
@@ -47,8 +79,8 @@ public:
 
 	/**
 	 * \brief Gets all frequently occurring itemsets.
-	 * \param minimum_support The minimum support needed for an item to be considered frequent.
-	 * \return All frequently occurring itemsets.
+	 * \param minimum_support The minimum support needed for an itemset to be considered frequent.
+	 * \return All frequently occurring itemsets with support greater than \p minimum_support.
 	 */
 	std::vector<std::unordered_set<T>> GetFrequentItemsets(const uint32_t minimum_support) const {
 
@@ -82,7 +114,7 @@ private:
 		const FrequentPatternTreeNode& node,
 		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
-		const auto item = *node.value;
+		const auto item = *node.item;
 		const auto item_range = item_nodes.equal_range(item);
 		const auto item_range_iterator = std::find_if(item_range.first, item_range.second, [&](const auto& map_entry) {
 			return node.id == map_entry.second->id;
@@ -190,11 +222,11 @@ private:
 	}
 
 	/**
-	 * \brief Gets all frequent item nodes and relative support which are ancestors of a target item node.
-	 * \param target The target item to get conditional item nodes for.
-	 * \param item_nodes The current item nodes multimap to get conditional item nodes from.
+	 * \brief Gets all frequent item nodes and their relative support which are ancestors of a target item node.
+	 * \param target The target item to get frequent ancestor item nodes for.
+	 * \param item_nodes A multimap containing references to nodes by item type.
 	 * \param minimum_support The minimum support for an item to be considered frequent.
-	 * \return All frequent item nodes and relative support which are ancestors of \p target.
+	 * \return All frequent item nodes which are ancestors of \p target.
 	 */
 	std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> GetConditionalItemNodes(
 		const T& target,
@@ -213,7 +245,7 @@ private:
 				} else {
 					item_node = std::make_shared<FrequentPatternTreeNode>(*node_iterator);
 					item_node->support = target_iterator->second->support;
-					conditional_item_nodes.insert(std::make_pair(*node_iterator->value, item_node));
+					conditional_item_nodes.insert(std::make_pair(*node_iterator->item, item_node));
 				}
 			}
 		}
@@ -222,6 +254,14 @@ private:
 		return conditional_item_nodes;
 	}
 
+	/**
+	 * \brief Recursively gets all frequently occurring itemsets.
+	 * \param current_itemset The current itemset to build candidate frequent itemsets from.
+	 * \param next_item The next item to merge into the current itemset.
+	 * \param conditional_item_nodes The conditional item nodes built from current itemset.
+	 * \param minimum_support The minimum support needed for an item to be considered frequent.
+	 * \return All frequent itemsets built from the current itemset.
+	 */
 	std::vector<std::unordered_set<T>> GetFrequentItemsets(
 		const std::unordered_set<T>& current_itemset,
 		const T& next_item,
@@ -251,6 +291,12 @@ private:
 		return frequent_itemsets;
 	}
 
+	/**
+	 * \brief Orders all items in an itemset by descending support.
+	 * \param itemset The itemset to sort.
+	 * \param support_by_item A map containing support by item.
+	 * \return An ordered set of items sorted by descending support.
+	 */
 	std::set<T, std::function<bool(T, T)>> OrderItemsByDescendingSupport(
 		const std::unordered_set<T>& itemset,
 		const std::unordered_map<T, uint32_t>& support_by_item) const {
@@ -262,11 +308,16 @@ private:
 		}};
 	}
 
-	void Insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& item_support) {
+	/**
+	 * \brief Inserts an itemset into the frequent pattern tree.
+	 * \param itemset The itemset to support.
+	 * \param support_by_item A map containing support by item.
+	 */
+	void Insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& support_by_item) {
 
 		auto iterator = root_;
 
-		for (const auto& item : OrderItemsByDescendingSupport(itemset, item_support)) {
+		for (const auto& item : OrderItemsByDescendingSupport(itemset, support_by_item)) {
 			if (!iterator->children.count(item)) {
 				iterator->children[item] = std::make_shared<FrequentPatternTreeNode>(item, iterator);
 				item_nodes_.insert(std::make_pair(item, iterator->children[item]));
