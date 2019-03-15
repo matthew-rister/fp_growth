@@ -14,6 +14,9 @@
 template <typename T>class FrequentPatternTree final {
 
 	struct FrequentPatternTreeNode final {
+
+		static inline uint32_t instance_count = 0;
+		uint32_t id;
 		std::optional<T> value;
 		std::shared_ptr<FrequentPatternTreeNode> parent;
 		std::map<T, std::shared_ptr<FrequentPatternTreeNode>> children;
@@ -22,11 +25,12 @@ template <typename T>class FrequentPatternTree final {
 		explicit FrequentPatternTreeNode(
 			std::optional<T> value = std::nullopt,
 			std::shared_ptr<FrequentPatternTreeNode> parent = nullptr)
-			: value{std::move(value)},
+			: id{++instance_count},
+			  value{std::move(value)},
 			  parent{std::move(parent)} {}
 
 		friend bool operator==(const FrequentPatternTreeNode& lhs, const FrequentPatternTreeNode& rhs) {
-			return &lhs == &rhs;
+			return lhs.id == rhs.id;
 		}
 	};
 
@@ -37,7 +41,7 @@ template <typename T>class FrequentPatternTree final {
 public:
 
 	explicit FrequentPatternTree(const std::vector<std::unordered_set<T>>& itemsets = {})
-		: item_support_{GetItemSupport(itemsets)} {
+		: item_support_{GetSupportByItem(itemsets)} {
 
 		for (const auto& itemset : itemsets) {
 			Insert(itemset);
@@ -72,23 +76,37 @@ private:
 
 		const auto item_range = item_nodes.equal_range(*node->value);
 		const auto item_range_iterator = std::find_if(item_range.first, item_range.second, [&](const auto& map_entry) {
-			return *node == map_entry->second;
+			return *node == *map_entry.second;
 		});
 
-		return item_range_iterator != item_range.second ? *item_range_iterator : nullptr;
+		return item_range_iterator != item_range.second ? item_range_iterator->second : nullptr;
 	}
 
-	static std::unordered_map<T, uint32_t> GetItemSupport(const std::vector<std::unordered_set<T>>& itemsets) {
+	static std::unordered_map<T, uint32_t> GetSupportByItem(const std::vector<std::unordered_set<T>>& itemsets) {
 
-		std::unordered_map<T, uint32_t> item_support;
+		std::unordered_map<T, uint32_t> support_by_item;
 
 		for (const auto& itemset : itemsets) {
 			for (const auto& item : itemset) {
-				++item_support[item];
+				++support_by_item[item];
 			}
 		}
 
-		return item_support;
+		return support_by_item;
+	}
+
+	static std::unordered_map<T, uint32_t> GetSupportByItem(
+		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
+
+		std::unordered_map<T, uint32_t> support_by_item;
+
+		for (const auto& [item, _] : item_nodes) {
+			if (!support_by_item.count(item)) {
+				support_by_item[item] = GetItemSupport(item, item_nodes);
+			}
+		}
+
+		return support_by_item;
 	}
 
 	static uint32_t GetItemSupport(
@@ -103,11 +121,13 @@ private:
 	}
 
 	static void RemoveInfrequentItemNodes(
-		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes,
-		const uint32_t minimum_support) {
+		const uint32_t minimum_support,
+		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
-		for (const auto& [item, _] : item_support_) {
-			if (GetItemSupport(item, item_nodes) < minimum_support) {
+		const auto support_by_item = GetSupportByItem(item_nodes);
+
+		for (const auto& [item, support] : support_by_item) {
+			if (support < minimum_support) {
 				const auto item_range = item_nodes.equal_range(item);
 				item_nodes.erase(item_range.first, item_range.second);
 			}
@@ -123,20 +143,20 @@ private:
 		const auto target_range = item_nodes.equal_range(target);
 
 		for (auto target_iterator = target_range.first; target_iterator != target_range.second; ++target_iterator) {
-			for (const auto node_iterator = target_iterator->second->parent; node_iterator->parent;
+			for (auto node_iterator = target_iterator->second->parent; node_iterator->parent;
 			     node_iterator = node_iterator->parent) {
 
 				if (auto item_node = FindNodeInItemRange(node_iterator, conditional_item_nodes); item_node) {
 					item_node->support += target_iterator->second->support;
 				} else {
-					item_node = std::make_shared<FrequentPatternTreeNode>(*node_iterator->value, node_iterator->parent);
+					item_node = std::make_shared<FrequentPatternTreeNode>(*node_iterator);
 					item_node->support = target_iterator->second->support;
 					conditional_item_nodes.insert(std::make_pair(*node_iterator->value, item_node));
 				}
 			}
 		}
 
-		RemoveInfrequentItemNodes(conditional_item_nodes, minimum_support);
+		RemoveInfrequentItemNodes(minimum_support, conditional_item_nodes);
 		return conditional_item_nodes;
 	}
 
