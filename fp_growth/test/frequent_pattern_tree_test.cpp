@@ -243,6 +243,104 @@ SCENARIO("Frequent Itemset Generation", "[FrequentPatternTree]") {
 		};
 		const FrequentPatternTree<char> fpt{itemsets};
 
+		WHEN("Frequent itemsets are extracted with a minimum support of 6") {
+			const auto frequent_itemsets = fpt.GetFrequentItemsets(6);
+
+			THEN("No frequent itemsets exist") {
+				REQUIRE(frequent_itemsets.empty());
+			}
+		}
+
+		WHEN("Frequent itemsets are extracted with a minimum support of 5") {
+			const auto frequent_itemsets = fpt.GetFrequentItemsets(5);
+
+			THEN("The size of the frequent itemsets is equal to 1") {
+				REQUIRE(frequent_itemsets.size() == 1);
+			}
+
+			THEN("The frequent itemsets contains the itemset {'D'}") {
+				const auto itemset = std::unordered_set<char>{'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+		}
+
+		WHEN("Frequent itemsets are extracted with a minimum support of 4") {
+			const auto frequent_itemsets = fpt.GetFrequentItemsets(4);
+
+			THEN("The size of the frequent itemsets is equal to 3") {
+				REQUIRE(frequent_itemsets.size() == 3);
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B'}") {
+				const auto itemset = std::unordered_set<char>{'B'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'D'}") {
+				const auto itemset = std::unordered_set<char>{'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B', 'D'}") {
+				const auto itemset = std::unordered_set<char>{'B', 'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+		}
+
+		WHEN("Frequent itemsets are extracted with a minimum support of 3") {
+			const auto frequent_itemsets = fpt.GetFrequentItemsets(3);
+
+			THEN("The size of the frequent itemsets is equal to 6 ") {
+				REQUIRE(frequent_itemsets.size() == 7);
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B'}") {
+				const auto itemset = std::unordered_set<char>{'B'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'C'}") {
+				const auto itemset = std::unordered_set<char>{'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'D'}") {
+				const auto itemset = std::unordered_set<char>{'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B', 'C'}") {
+				const auto itemset = std::unordered_set<char>{'B', 'C'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B', 'D'}") {
+				const auto itemset = std::unordered_set<char>{'B', 'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'C', 'D'}") {
+				const auto itemset = std::unordered_set<char>{'C', 'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+
+			THEN("The frequent itemsets contains the itemset {'B', 'C', 'D'}") {
+				const auto itemset = std::unordered_set<char>{'B', 'C', 'D'};
+				const auto iterator = std::find(frequent_itemsets.begin(), frequent_itemsets.end(), itemset);
+				REQUIRE(iterator != frequent_itemsets.end());
+			}
+		}
+
 		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
 			const auto frequent_itemsets = fpt.GetFrequentItemsets(2);
 
