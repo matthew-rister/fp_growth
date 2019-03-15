@@ -11,7 +11,8 @@
 #include <utility>
 #include <vector>
 
-template <typename T>class FrequentPatternTree final {
+template <typename T>
+class FrequentPatternTree final {
 
 	struct FrequentPatternTreeNode final {
 
