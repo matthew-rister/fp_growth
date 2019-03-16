@@ -133,7 +133,6 @@ private:
 	 * \brief Gets all frequent item nodes and their relative support which are ancestors of a target item node.
 	 * \param target The target item to get frequent ancestor item nodes for.
 	 * \param item_nodes A multimap containing references to nodes by item type.
-	 * \param minimum_support The minimum support for an itemset to be considered frequent.
 	 * \return All frequent item nodes which are ancestors of \p target.
 	 */
 	std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> GetConditionalItemNodes(
