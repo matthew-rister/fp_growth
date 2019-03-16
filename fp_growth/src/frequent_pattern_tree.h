@@ -140,30 +140,13 @@ private:
 
 		std::unordered_map<T, uint32_t> item_support;
 
-		for (const auto&[item, _] : item_nodes) {
+		for (const auto& [item, _] : item_nodes) {
 			if (!item_support.count(item)) {
 				item_support[item] = GetItemSupport(item, item_nodes);
 			}
 		}
 
 		return item_support;
-	}
-
-	/**
-	 * \brief Removes infrequent item nodes from an item node multimap.
-	 * \param minimum_support The minimum support needed for an itemset to be considered frequent.
-	 * \param item_nodes A multimap containing references to nodes by item type.
-	 */
-	static void RemoveInfrequentItemNodes(
-		const uint32_t minimum_support,
-		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
-
-		for (const auto& [item, support] : GetItemSupport(item_nodes)) {
-			if (support < minimum_support) {
-				const auto item_range = item_nodes.equal_range(item);
-				item_nodes.erase(item_range.first, item_range.second);
-			}
-		}
 	}
 
 	/**
@@ -194,7 +177,6 @@ private:
 			}
 		}
 
-		RemoveInfrequentItemNodes(minimum_support, conditional_item_nodes);
 		return conditional_item_nodes;
 	}
 
