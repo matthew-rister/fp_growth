@@ -21,33 +21,26 @@ class FrequentPatternTree final {
 	/** \brief Represents an item node in the frequent pattern tree.*/
 	struct FrequentPatternTreeNode final {
 
-		/** \brief The number of created node instances. */
+		/** \brief The number of total nodes created. */
 		static inline uint32_t instance_count = 0;
 
 		/** \brief The node ID. */
 		uint32_t id;
 
-		/** \brief The node item value. */
+		/** \brief The node item. */
 		std::optional<T> item;
 
-		/** \brief A reference to the parent node in the frequent pattern tree. */
+		/** \brief The parent node in the frequent pattern tree. */
 		std::shared_ptr<FrequentPatternTreeNode> parent;
 
-		/** \brief A mapping of child nodes references by item type. */
+		/** \brief A mapping of child nodes by item type. */
 		std::map<T, std::shared_ptr<FrequentPatternTreeNode>> children;
 
 
-		/**
-		 * \brief A count of the number of times this node item was encountered in an itemset
-		 *		  represented by the path to this node from the root of the frequent pattern tree.
-		 */
+		/** \brief A count of the number of times this node item was encountered in an itemset. */
 		uint32_t support = 1;
 
-		/**
-		 * \brief Initializes a frequent pattern tree node.
-		 * \param item The node item.
-		 * \param parent A reference to the parent node.
-		 */
+		/** \brief Initializes a frequent pattern tree node. */
 		explicit FrequentPatternTreeNode(
 			std::optional<T> item = std::nullopt,
 			std::shared_ptr<FrequentPatternTreeNode> parent = nullptr)
@@ -64,10 +57,7 @@ class FrequentPatternTree final {
 
 public:
 
-	/**
-	 * \brief Initializes a frequent pattern tree from a collection of itemsets.
-	 * \param itemsets A collection of itemsets to build the frequent pattern tree from.
-	 */
+	/** \brief Initializes a frequent pattern tree from a collection of itemsets. */
 	explicit FrequentPatternTree(const std::vector<std::unordered_set<T>>& itemsets = {}) {
 
 		std::unordered_map<T, uint32_t> support_by_item = GetSupportByItem(itemsets);
@@ -83,23 +73,7 @@ public:
 	 * \return All frequently occurring itemsets with support greater than \p minimum_support.
 	 */
 	std::vector<std::unordered_set<T>> GetFrequentItemsets(const uint32_t minimum_support) const {
-
-		std::vector<std::unordered_set<T>> frequent_itemsets;
-		const auto frequent_items = GetFrequentItemsOrderedByAscendingSupport(minimum_support, item_nodes_);
-
-		for (auto current_item = frequent_items.begin(); current_item != frequent_items.end(); ++current_item) {
-			const auto conditional_item_nodes = GetConditionalItemNodes(*current_item, item_nodes_, minimum_support);
-			const std::unordered_set<T> current_itemset{*current_item};
-			frequent_itemsets.push_back(current_itemset);
-
-			for (auto next_item = std::next(current_item); next_item != frequent_items.end(); ++next_item) {
-				const auto next_itemsets = GetFrequentItemsets(
-					current_itemset, *next_item, conditional_item_nodes, minimum_support);
-				frequent_itemsets.insert(frequent_itemsets.end(), next_itemsets.begin(), next_itemsets.end());
-			}
-		}
-
-		return frequent_itemsets;
+		return GetFrequentItemsets({}, item_nodes_, minimum_support);
 	}
 
 private:
@@ -253,58 +227,29 @@ private:
 		return conditional_item_nodes;
 	}
 
-	/**
-	 * \brief Recursively gets all frequently occurring itemsets.
-	 * \param current_itemset The current itemset to build candidate frequent itemsets from.
-	 * \param next_item The next item to merge into the current itemset.
-	 * \param conditional_item_nodes The conditional item nodes built from current itemset.
-	 * \param minimum_support The minimum support needed for an item to be considered frequent.
-	 * \return All frequent itemsets built from the current itemset.
-	 */
 	std::vector<std::unordered_set<T>> GetFrequentItemsets(
-		const std::unordered_set<T>& current_itemset,
-		const T& next_item,
-		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& conditional_item_nodes,
+		const std::unordered_set<T>& prev_itemset,
+		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes,
 		const uint32_t minimum_support) const {
 
+		std::set<T> visited_items;
 		std::vector<std::unordered_set<T>> frequent_itemsets;
 
-		if (GetItemSupport(next_item, conditional_item_nodes) >= minimum_support) {
-			std::unordered_set<T> visited;
-			std::unordered_set<T> next_itemset{current_itemset};
-			next_itemset.insert(next_item);
-			frequent_itemsets.push_back(next_itemset);
+		for (const auto& [current_item, _] : item_nodes) {
+			if (!visited_items.count(current_item) && GetItemSupport(current_item, item_nodes) >= minimum_support) {
 
-			for (const auto& [item, _] : conditional_item_nodes) {
-				if (!visited.count(item)) {
-					const auto next_conditional_item_nodes = GetConditionalItemNodes(
-						next_item, conditional_item_nodes, minimum_support);
-					const auto next_itemsets = GetFrequentItemsets(
-						next_itemset, item, next_conditional_item_nodes, minimum_support);
-					frequent_itemsets.insert(frequent_itemsets.end(), next_itemsets.begin(), next_itemsets.end());
-					visited.insert(item);
-				}
+				std::unordered_set<T> current_itemset{prev_itemset};
+				current_itemset.insert(current_item);
+				frequent_itemsets.push_back(current_itemset);
+
+				const auto conditional_item_nodes = GetConditionalItemNodes(current_item, item_nodes, minimum_support);
+				const auto next_itemsets = GetFrequentItemsets(current_itemset, conditional_item_nodes, minimum_support);
+				frequent_itemsets.insert(frequent_itemsets.end(), next_itemsets.begin(), next_itemsets.end());
 			}
+			visited_items.insert(current_item);
 		}
 
 		return frequent_itemsets;
-	}
-
-	/**
-	 * \brief Orders all items in an itemset by descending support.
-	 * \param itemset The itemset to sort.
-	 * \param support_by_item A map containing support by item.
-	 * \return An ordered set of items sorted by descending support.
-	 */
-	std::set<T, std::function<bool(T, T)>> OrderItemsByDescendingSupport(
-		const std::unordered_set<T>& itemset,
-		const std::unordered_map<T, uint32_t>& support_by_item) const {
-
-		return std::set<T, std::function<bool(T, T)>>{itemset.begin(), itemset.end(), [&](const T& a, const T& b) {
-			return support_by_item.at(a) != support_by_item.at(b)
-				? support_by_item.at(a) > support_by_item.at(b)
-				: a < b;
-		}};
 	}
 
 	/**
@@ -325,5 +270,22 @@ private:
 			}
 			iterator = iterator->children[item];
 		}
+	}
+
+	/**
+	 * \brief Orders all items in an itemset by descending support.
+	 * \param itemset The itemset to sort.
+	 * \param support_by_item A map containing support by item.
+	 * \return An ordered set of items sorted by descending support.
+	 */
+	std::set<T, std::function<bool(T, T)>> OrderItemsByDescendingSupport(
+		const std::unordered_set<T>& itemset,
+		const std::unordered_map<T, uint32_t>& support_by_item) const {
+
+		return std::set<T, std::function<bool(T, T)>>{itemset.begin(), itemset.end(), [&](const T& a, const T& b) {
+			return support_by_item.at(a) != support_by_item.at(b)
+				? support_by_item.at(a) > support_by_item.at(b)
+				: a < b;
+		}};
 	}
 };
