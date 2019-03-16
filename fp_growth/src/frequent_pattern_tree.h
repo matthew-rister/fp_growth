@@ -60,10 +60,10 @@ public:
 	/** \brief Initializes a frequent pattern tree from a collection of itemsets. */
 	explicit FrequentPatternTree(const std::vector<std::unordered_set<T>>& itemsets = {}) {
 
-		std::unordered_map<T, uint32_t> support_by_item = GetSupportByItem(itemsets);
+		std::unordered_map<T, uint32_t> item_support = GetItemSupport(itemsets);
 
 		for (const auto& itemset : itemsets) {
-			Insert(itemset, support_by_item);
+			Insert(itemset, item_support);
 		}
 	}
 
@@ -82,9 +82,9 @@ private:
 	 * \brief Looks for a node in an item node multimap.
 	 * \param node The node to look for.
 	 * \param item_nodes A multimap containing references to nodes by type.
-	 * \return The node if present in the multimap, otherwise \c nullptr. \c
+	 * \return The node if present in \p item_nodes, otherwise \c nullptr. \c
 	 */
-	static std::shared_ptr<FrequentPatternTreeNode> FindItemNodeInMultimap(
+	static std::shared_ptr<FrequentPatternTreeNode> FindNodeInItemRange(
 		const FrequentPatternTreeNode& node,
 		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
@@ -107,7 +107,7 @@ private:
 		const uint32_t minimum_support,
 		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
-		const auto support_by_item = GetSupportByItem(item_nodes);
+		const auto support_by_item = GetItemSupport(item_nodes);
 
 		std::set<T, std::function<bool(T, T)>> frequent_items{[&](const T& a, const T& b) {
 			return support_by_item.at(a) != support_by_item.at(b)
@@ -145,36 +145,17 @@ private:
 	 * \param itemsets A collection of itemsets to determine support for.
 	 * \return The support for each item in \p itemsets.
 	 */
-	static std::unordered_map<T, uint32_t> GetSupportByItem(const std::vector<std::unordered_set<T>>& itemsets) {
+	static std::unordered_map<T, uint32_t> GetItemSupport(const std::vector<std::unordered_set<T>>& itemsets) {
 
-		std::unordered_map<T, uint32_t> support_by_item;
+		std::unordered_map<T, uint32_t> item_support;
 
 		for (const auto& itemset : itemsets) {
 			for (const auto& item : itemset) {
-				++support_by_item[item];
+				++item_support[item];
 			}
 		}
 
-		return support_by_item;
-	}
-
-	/**
-	 * \brief Gets the support for each item in an item node multimap.
-	 * \param item_nodes A multimap containing references to nodes by item type.
-	 * \return The support for each item in \p item_nodes
-	 */
-	static std::unordered_map<T, uint32_t> GetSupportByItem(
-		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
-
-		std::unordered_map<T, uint32_t> support_by_item;
-
-		for (const auto& [item, _] : item_nodes) {
-			if (!support_by_item.count(item)) {
-				support_by_item[item] = GetItemSupport(item, item_nodes);
-			}
-		}
-
-		return support_by_item;
+		return item_support;
 	}
 
 	/**
@@ -186,7 +167,7 @@ private:
 		const uint32_t minimum_support,
 		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
-		for (const auto& [item, support] : GetSupportByItem(item_nodes)) {
+		for (const auto& [item, support] : GetItemSupport(item_nodes)) {
 			if (support < minimum_support) {
 				const auto item_range = item_nodes.equal_range(item);
 				item_nodes.erase(item_range.first, item_range.second);
@@ -213,7 +194,7 @@ private:
 			for (auto node_iterator = target_iterator->second->parent; node_iterator->parent;
 			     node_iterator = node_iterator->parent) {
 
-				if (auto item_node = FindItemNodeInMultimap(*node_iterator, conditional_item_nodes); item_node) {
+				if (auto item_node = FindNodeInItemRange(*node_iterator, conditional_item_nodes); item_node) {
 					item_node->support += target_iterator->second->support;
 				} else {
 					item_node = std::make_shared<FrequentPatternTreeNode>(*node_iterator);
@@ -228,8 +209,8 @@ private:
 	}
 
 	/**
-	 * \brief Gets a frequently occurring itemsets.
-	 * \param current_itemset The current frequent itemset to generate subsequent candidate itemsets from.
+	 * \brief Gets frequently occurring itemsets.
+	 * \param current_itemset The current frequent itemset to generate candidate itemsets from.
 	 * \param item_nodes A multimap containing references to nodes by item type.
 	 * \param minimum_support The minimum support needed for an itemset to be considered frequent.
 	 * \return Frequently occurring itemsets generated from \p current_itemset
@@ -262,13 +243,13 @@ private:
 	/**
 	 * \brief Inserts an itemset into the frequent pattern tree.
 	 * \param itemset The itemset to support.
-	 * \param support_by_item A map containing support by item.
+	 * \param item_support A map containing support by item.
 	 */
-	void Insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& support_by_item) {
+	void Insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& item_support) {
 
 		auto iterator = root_;
 
-		for (const auto& item : OrderItemsByDescendingSupport(itemset, support_by_item)) {
+		for (const auto& item : OrderItemsByDescendingSupport(itemset, item_support)) {
 			if (!iterator->children.count(item)) {
 				iterator->children[item] = std::make_shared<FrequentPatternTreeNode>(item, iterator);
 				item_nodes_.insert(std::make_pair(item, iterator->children[item]));
@@ -282,17 +263,15 @@ private:
 	/**
 	 * \brief Orders all items in an itemset by descending support.
 	 * \param itemset The itemset to sort.
-	 * \param support_by_item A map containing support by item.
+	 * \param item_support A map containing support by item.
 	 * \return An ordered set of items sorted by descending support.
 	 */
 	std::set<T, std::function<bool(T, T)>> OrderItemsByDescendingSupport(
 		const std::unordered_set<T>& itemset,
-		const std::unordered_map<T, uint32_t>& support_by_item) const {
+		const std::unordered_map<T, uint32_t>& item_support) const {
 
 		return std::set<T, std::function<bool(T, T)>>{itemset.begin(), itemset.end(), [&](const T& a, const T& b) {
-			return support_by_item.at(a) != support_by_item.at(b)
-				? support_by_item.at(a) > support_by_item.at(b)
-				: a < b;
+			return item_support.at(a) != item_support.at(b) ? item_support.at(a) > item_support.at(b) : a < b;
 		}};
 	}
 };
