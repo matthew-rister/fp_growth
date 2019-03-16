@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iterator>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -130,6 +131,23 @@ private:
 	}
 
 	/**
+	 * \brief Gets unique items in an item nodes multimap.
+	 * \param item_nodes The item nodes to get the unique items from.
+	 * \return Unique items in \p item_nodes.
+	 */
+	static std::unordered_set<T> get_unique_items(
+		const std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>>& item_nodes) {
+
+		std::unordered_set<T> items;
+
+		std::transform(item_nodes.begin(), item_nodes.end(), std::inserter(items, items.end()), [](const auto& map_entry) {
+			return map_entry.first;
+		});
+
+		return items;
+	}
+
+	/**
 	 * \brief Gets all frequent item nodes and their relative support which are ancestors of a target item node.
 	 * \param target The target item to get frequent ancestor item nodes for.
 	 * \param item_nodes A multimap containing references to nodes by item type.
@@ -170,11 +188,10 @@ private:
 		const std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>>& item_nodes,
 		const uint32_t minimum_support) const {
 
-		std::set<T> visited_items;
 		std::vector<std::unordered_set<T>> frequent_itemsets;
 
-		for (const auto& [next_item, _] : item_nodes) {
-			if (!visited_items.count(next_item) && get_item_support(next_item, item_nodes) >= minimum_support) {
+		for (const auto& next_item : get_unique_items(item_nodes)) {
+			if (get_item_support(next_item, item_nodes) >= minimum_support) {
 
 				std::unordered_set<T> next_itemset{current_itemset};
 				next_itemset.insert(next_item);
@@ -184,7 +201,6 @@ private:
 				const auto next_itemsets = get_frequent_itemsets(next_itemset, conditional_item_nodes, minimum_support);
 				frequent_itemsets.insert(frequent_itemsets.end(), next_itemsets.begin(), next_itemsets.end());
 			}
-			visited_items.insert(next_item);
 		}
 
 		return frequent_itemsets;
