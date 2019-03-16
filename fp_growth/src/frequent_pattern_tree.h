@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -32,7 +31,7 @@ class FrequentPatternTree final {
 		std::shared_ptr<FrequentPatternTreeNode> parent;
 
 		/** \brief A mapping of child nodes by item type. */
-		std::map<T, std::shared_ptr<FrequentPatternTreeNode>> children;
+		std::unordered_map<T, std::shared_ptr<FrequentPatternTreeNode>> children;
 
 		/** \brief A count of the number of times this node item was encountered in an itemset. */
 		uint32_t support = 1;
