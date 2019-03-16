@@ -138,8 +138,7 @@ private:
 	 */
 	std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> GetConditionalItemNodes(
 		const T& target,
-		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes,
-		const uint32_t minimum_support) const {
+		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) const {
 
 		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> conditional_item_nodes;
 		const auto target_range = item_nodes.equal_range(target);
@@ -182,7 +181,7 @@ private:
 				next_itemset.insert(next_item);
 				frequent_itemsets.push_back(next_itemset);
 
-				const auto conditional_item_nodes = GetConditionalItemNodes(next_item, item_nodes, minimum_support);
+				const auto conditional_item_nodes = GetConditionalItemNodes(next_item, item_nodes);
 				const auto next_itemsets = GetFrequentItemsets(next_itemset, conditional_item_nodes, minimum_support);
 				frequent_itemsets.insert(frequent_itemsets.end(), next_itemsets.begin(), next_itemsets.end());
 			}
