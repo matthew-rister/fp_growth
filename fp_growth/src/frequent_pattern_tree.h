@@ -58,7 +58,7 @@ public:
 	/** \brief Initializes a frequent pattern tree from a collection of itemsets. */
 	explicit FrequentPatternTree(const std::vector<std::unordered_set<T>>& itemsets = {}) {
 
-		std::unordered_map<T, uint32_t> item_support = GetItemSupport(itemsets);
+		const auto item_support = GetItemSupport(itemsets);
 
 		for (const auto& itemset : itemsets) {
 			Insert(itemset, item_support);
