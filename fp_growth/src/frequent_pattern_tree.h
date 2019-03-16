@@ -18,7 +18,7 @@
 template <typename T>
 class FrequentPatternTree final {
 
-	/** \brief Represents an item node in the frequent pattern tree.*/
+	/** \brief Represents an item node in the frequent pattern tree. */
 	struct FrequentPatternTreeNode final {
 
 		/** \brief The number of total nodes created. */
@@ -35,7 +35,6 @@ class FrequentPatternTree final {
 
 		/** \brief A mapping of child nodes by item type. */
 		std::map<T, std::shared_ptr<FrequentPatternTreeNode>> children;
-
 
 		/** \brief A count of the number of times this node item was encountered in an itemset. */
 		uint32_t support = 1;
