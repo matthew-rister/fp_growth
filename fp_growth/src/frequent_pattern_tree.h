@@ -130,25 +130,6 @@ private:
 	}
 
 	/**
-	 * \brief Gets the support for each item in an item node multimap.
-	 * \param item_nodes A multimap containing references to nodes by item type.
-	 * \return The support for each item in \p item_nodes
-	 */
-	static std::unordered_map<T, uint32_t> GetItemSupport(
-		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
-
-		std::unordered_map<T, uint32_t> item_support;
-
-		for (const auto& [item, _] : item_nodes) {
-			if (!item_support.count(item)) {
-				item_support[item] = GetItemSupport(item, item_nodes);
-			}
-		}
-
-		return item_support;
-	}
-
-	/**
 	 * \brief Gets all frequent item nodes and their relative support which are ancestors of a target item node.
 	 * \param target The target item to get frequent ancestor item nodes for.
 	 * \param item_nodes A multimap containing references to nodes by item type.
