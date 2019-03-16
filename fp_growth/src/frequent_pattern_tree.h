@@ -98,33 +98,6 @@ private:
 	}
 
 	/**
-	 * \brief Gets frequently occurring items in an item node multimap ordered by ascending support.
-	 * \param minimum_support The minimum support needed for an itemset to be considered frequent.
-	 * \param item_nodes A multimap containing references to nodes by item type.
-	 * \return All frequently occurring items in \p item_nodes.
-	 */
-	static std::set<T, std::function<bool(T, T)>> GetFrequentItemsOrderedByAscendingSupport(
-		const uint32_t minimum_support,
-		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
-
-		const auto support_by_item = GetItemSupport(item_nodes);
-
-		std::set<T, std::function<bool(T, T)>> frequent_items{[&](const T& a, const T& b) {
-			return support_by_item.at(a) != support_by_item.at(b)
-				       ? support_by_item.at(a) < support_by_item.at(b)
-				       : a > b;
-		}};
-
-		for (const auto& [item, support] : support_by_item) {
-			if (support >= minimum_support) {
-				frequent_items.insert(item);
-			}
-		}
-
-		return frequent_items;
-	}
-
-	/**
 	 * \brief Gets the support for an item in an item node multimap.
 	 * \param item The item to determine the support for.
 	 * \param item_nodes A multimap containing references to nodes by item type.
@@ -152,6 +125,25 @@ private:
 		for (const auto& itemset : itemsets) {
 			for (const auto& item : itemset) {
 				++item_support[item];
+			}
+		}
+
+		return item_support;
+	}
+
+	/**
+	 * \brief Gets the support for each item in an item node multimap.
+	 * \param item_nodes A multimap containing references to nodes by item type.
+	 * \return The support for each item in \p item_nodes
+	 */
+	static std::unordered_map<T, uint32_t> GetItemSupport(
+		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
+
+		std::unordered_map<T, uint32_t> item_support;
+
+		for (const auto&[item, _] : item_nodes) {
+			if (!item_support.count(item)) {
+				item_support[item] = GetItemSupport(item, item_nodes);
 			}
 		}
 
@@ -191,15 +183,14 @@ private:
 		const auto target_range = item_nodes.equal_range(target);
 
 		for (auto target_iterator = target_range.first; target_iterator != target_range.second; ++target_iterator) {
-			for (auto node_iterator = target_iterator->second->parent; node_iterator->parent;
-			     node_iterator = node_iterator->parent) {
+			for (auto node = target_iterator->second->parent; node->parent; node = node->parent) {
 
-				if (auto item_node = FindNodeInItemRange(*node_iterator, conditional_item_nodes); item_node) {
+				if (auto item_node = FindNodeInItemRange(*node, conditional_item_nodes); item_node) {
 					item_node->support += target_iterator->second->support;
 				} else {
-					item_node = std::make_shared<FrequentPatternTreeNode>(*node_iterator);
+					item_node = std::make_shared<FrequentPatternTreeNode>(*node);
 					item_node->support = target_iterator->second->support;
-					conditional_item_nodes.insert(std::make_pair(*node_iterator->item, item_node));
+					conditional_item_nodes.insert(std::make_pair(*node->item, item_node));
 				}
 			}
 		}
