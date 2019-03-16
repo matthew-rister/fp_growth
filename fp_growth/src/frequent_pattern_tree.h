@@ -16,10 +16,12 @@ template <typename T>
 class FrequentPatternTree final {
 
 	/** \brief Represents an item node in the frequent pattern tree. */
-	struct FrequentPatternTreeNode final {
+	class FrequentPatternTreeNode final {
 
 		/** \brief The number of total nodes created. */
-		static inline uint32_t instance_count = 0;
+		static inline uint32_t instance_count_ = 0;
+
+	public:
 
 		/** \brief The node ID. */
 		uint32_t id;
@@ -40,7 +42,7 @@ class FrequentPatternTree final {
 		explicit FrequentPatternTreeNode(
 			std::optional<T> item = std::nullopt,
 			std::shared_ptr<FrequentPatternTreeNode> parent = nullptr)
-			: id{++instance_count},
+			: id{++instance_count_},
 			  item{std::move(item)},
 			  parent{std::move(parent)} {}
 	};
