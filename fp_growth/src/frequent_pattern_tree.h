@@ -99,7 +99,7 @@ private:
 
 	/**
 	 * \brief Gets frequently occurring items in an item node multimap ordered by ascending support.
-	 * \param minimum_support The minimum support needed for an item to be considered frequent.
+	 * \param minimum_support The minimum support needed for an itemset to be considered frequent.
 	 * \param item_nodes A multimap containing references to nodes by item type.
 	 * \return All frequently occurring items in \p item_nodes.
 	 */
@@ -179,7 +179,7 @@ private:
 
 	/**
 	 * \brief Removes infrequent item nodes from an item node multimap.
-	 * \param minimum_support The minimum support needed to be considered frequent.
+	 * \param minimum_support The minimum support needed for an itemset to be considered frequent.
 	 * \param item_nodes A multimap containing references to nodes by item type.
 	 */
 	static void RemoveInfrequentItemNodes(
@@ -198,7 +198,7 @@ private:
 	 * \brief Gets all frequent item nodes and their relative support which are ancestors of a target item node.
 	 * \param target The target item to get frequent ancestor item nodes for.
 	 * \param item_nodes A multimap containing references to nodes by item type.
-	 * \param minimum_support The minimum support for an item to be considered frequent.
+	 * \param minimum_support The minimum support for an itemset to be considered frequent.
 	 * \return All frequent item nodes which are ancestors of \p target.
 	 */
 	std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> GetConditionalItemNodes(
@@ -227,26 +227,33 @@ private:
 		return conditional_item_nodes;
 	}
 
+	/**
+	 * \brief Gets a frequently occurring itemsets.
+	 * \param current_itemset The current frequent itemset to generate subsequent candidate itemsets from.
+	 * \param item_nodes A multimap containing references to nodes by item type.
+	 * \param minimum_support The minimum support needed for an itemset to be considered frequent.
+	 * \return Frequently occurring itemsets generated from \p current_itemset
+	 */
 	std::vector<std::unordered_set<T>> GetFrequentItemsets(
-		const std::unordered_set<T>& prev_itemset,
+		const std::unordered_set<T>& current_itemset,
 		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes,
 		const uint32_t minimum_support) const {
 
 		std::set<T> visited_items;
 		std::vector<std::unordered_set<T>> frequent_itemsets;
 
-		for (const auto& [current_item, _] : item_nodes) {
-			if (!visited_items.count(current_item) && GetItemSupport(current_item, item_nodes) >= minimum_support) {
+		for (const auto& [next_item, _] : item_nodes) {
+			if (!visited_items.count(next_item) && GetItemSupport(next_item, item_nodes) >= minimum_support) {
 
-				std::unordered_set<T> current_itemset{prev_itemset};
-				current_itemset.insert(current_item);
-				frequent_itemsets.push_back(current_itemset);
+				std::unordered_set<T> next_itemset{current_itemset};
+				next_itemset.insert(next_item);
+				frequent_itemsets.push_back(next_itemset);
 
-				const auto conditional_item_nodes = GetConditionalItemNodes(current_item, item_nodes, minimum_support);
-				const auto next_itemsets = GetFrequentItemsets(current_itemset, conditional_item_nodes, minimum_support);
+				const auto conditional_item_nodes = GetConditionalItemNodes(next_item, item_nodes, minimum_support);
+				const auto next_itemsets = GetFrequentItemsets(next_itemset, conditional_item_nodes, minimum_support);
 				frequent_itemsets.insert(frequent_itemsets.end(), next_itemsets.begin(), next_itemsets.end());
 			}
-			visited_items.insert(current_item);
+			visited_items.insert(next_item);
 		}
 
 		return frequent_itemsets;
