@@ -228,7 +228,7 @@ private:
 		const auto item_range = item_nodes.equal_range(item);
 		const auto item_range_iterator = std::find_if(item_range.first, item_range.second, [&](const auto& map_entry) {
 			return item_node.id == map_entry.second->id;
-			});
+		});
 
 		return item_range_iterator != item_range.second ? item_range_iterator->second : nullptr;
 	}
