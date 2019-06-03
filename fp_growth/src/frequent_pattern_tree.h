@@ -45,9 +45,9 @@ namespace fpt {
 			explicit FrequentPatternTreeNode(
 				std::optional<T> item = std::nullopt,
 				std::shared_ptr<FrequentPatternTreeNode> parent = nullptr)
-				: id{ ++instance_count_ },
-				item{ std::move(item) },
-				parent{ std::move(parent) } {}
+				: id{++instance_count_},
+				  item{std::move(item)},
+				  parent{std::move(parent)} {}
 		};
 
 		/** \brief The root of the frequent pattern tree. */
@@ -106,8 +106,8 @@ namespace fpt {
 
 			auto iterator = root_;
 
-			std::set<T, std::function<bool(T, T)>> items_by_descending_support{
-				itemset.begin(), itemset.end(), [&](const T& a, const T& b) {
+			std::set<T, std::function<bool(T, T)>> items_by_descending_support{itemset.begin(), itemset.end(),
+				[&](const T& a, const T& b) {
 					return item_support.at(a) != item_support.at(b) ? item_support.at(a) > item_support.at(b) : a < b;
 				}};
 
@@ -115,8 +115,7 @@ namespace fpt {
 				if (!iterator->children.count(item)) {
 					iterator->children[item] = std::make_shared<FrequentPatternTreeNode>(item, iterator);
 					item_nodes_.insert(std::make_pair(item, iterator->children[item]));
-				}
-				else {
+				} else {
 					++iterator->children[item]->support;
 				}
 				iterator = iterator->children[item];
@@ -152,7 +151,6 @@ namespace fpt {
 
 			return frequent_itemsets;
 		}
-
 
 		/**
 		 * \brief Gets unique items in an item nodes multimap.
@@ -205,8 +203,7 @@ namespace fpt {
 
 					if (auto item_node = find_item_node(*node, conditional_item_nodes); item_node) {
 						item_node->support += target_iterator->second->support;
-					}
-					else {
+					} else {
 						item_node = std::make_shared<FrequentPatternTreeNode>(*node);
 						item_node->support = target_iterator->second->support;
 						conditional_item_nodes.insert(std::make_pair(*node->item, item_node));
@@ -229,9 +226,10 @@ namespace fpt {
 
 			const auto item = *item_node.item;
 			const auto item_range = item_nodes.equal_range(item);
-			const auto item_range_iterator = std::find_if(item_range.first, item_range.second, [&](const auto& map_entry) {
-				return item_node.id == map_entry.second->id;
-			});
+			const auto item_range_iterator = std::find_if(item_range.first, item_range.second,
+				[&](const auto& map_entry) {
+					return item_node.id == map_entry.second->id;
+				});
 
 			return item_range_iterator != item_range.second ? item_range_iterator->second : nullptr;
 		}
