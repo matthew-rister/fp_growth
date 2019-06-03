@@ -14,10 +14,10 @@
  * \tparam T The type used to represent each item.
  */
 template <typename T>
-class frequent_pattern_tree final {
+class FrequentPatternTree final {
 
 	/** \brief Represents an item node in the frequent pattern tree. */
-	class frequent_pattern_tree_node final {
+	class FrequentPatternTreeNode final {
 
 		/** \brief The number of total nodes created. */
 		static inline uint32_t instance_count_ = 0;
@@ -31,33 +31,33 @@ class frequent_pattern_tree final {
 		std::optional<T> item;
 
 		/** \brief The parent node in the frequent pattern tree. */
-		std::shared_ptr<frequent_pattern_tree_node> parent;
+		std::shared_ptr<FrequentPatternTreeNode> parent;
 
 		/** \brief A mapping of child nodes by item type. */
-		std::unordered_map<T, std::shared_ptr<frequent_pattern_tree_node>> children;
+		std::unordered_map<T, std::shared_ptr<FrequentPatternTreeNode>> children;
 
 		/** \brief A count of the number of times this node item was encountered in an itemset. */
 		uint32_t support = 1;
 
 		/** \brief Initializes a frequent pattern tree node. */
-		explicit frequent_pattern_tree_node(
+		explicit FrequentPatternTreeNode(
 			std::optional<T> item = std::nullopt,
-			std::shared_ptr<frequent_pattern_tree_node> parent = nullptr)
+			std::shared_ptr<FrequentPatternTreeNode> parent = nullptr)
 			: id{++instance_count_},
 			  item{std::move(item)},
 			  parent{std::move(parent)} {}
 	};
 
 	/** \brief The root of the frequent pattern tree. */
-	std::shared_ptr<frequent_pattern_tree_node> root_ = std::make_shared<frequent_pattern_tree_node>();
+	std::shared_ptr<FrequentPatternTreeNode> root_ = std::make_shared<FrequentPatternTreeNode>();
 
 	/** \brief A mapping of nodes in the tree by item type. */
-	std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>> item_nodes_;
+	std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> item_nodes_;
 
 public:
 
 	/** \brief Initializes a frequent pattern tree from a collection of itemsets. */
-	explicit frequent_pattern_tree(const std::vector<std::unordered_set<T>>& itemsets = {}) {
+	explicit FrequentPatternTree(const std::vector<std::unordered_set<T>>& itemsets = {}) {
 
 		const auto item_support = get_item_support(itemsets);
 
@@ -78,41 +78,6 @@ public:
 private:
 
 	/**
-	 * \brief Looks for a node in an item node multimap.
-	 * \param item_node The node to look for.
-	 * \param item_nodes A multimap containing references to nodes by type.
-	 * \return The node if present in \p item_nodes, otherwise \c nullptr. \c
-	 */
-	static std::shared_ptr<frequent_pattern_tree_node> find_item_node(
-		const frequent_pattern_tree_node& item_node,
-		const std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>>& item_nodes) {
-
-		const auto item = *item_node.item;
-		const auto item_range = item_nodes.equal_range(item);
-		const auto item_range_iterator = std::find_if(item_range.first, item_range.second, [&](const auto& map_entry) {
-			return item_node.id == map_entry.second->id;
-		});
-
-		return item_range_iterator != item_range.second ? item_range_iterator->second : nullptr;
-	}
-
-	/**
-	 * \brief Gets the support for an item in an item node multimap.
-	 * \param item The item to determine the support for.
-	 * \param item_nodes A multimap containing references to nodes by item type.
-	 * \return The support for \p item in \p item_nodes.
-	 */
-	static uint32_t get_item_support(
-		const T& item,
-		const std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>>& item_nodes) {
-
-		const auto item_range = item_nodes.equal_range(item);
-		return std::reduce(item_range.first, item_range.second, 0u, [](const auto sum, const auto& map_entry) {
-			return sum + map_entry.second->support;
-		});
-	}
-
-	/**
 	 * \brief Gets the support for each item type in a collection of itemsets.
 	 * \param itemsets A collection of itemsets to determine support for.
 	 * \return The support for each item in \p itemsets.
@@ -131,49 +96,29 @@ private:
 	}
 
 	/**
-	 * \brief Gets unique items in an item nodes multimap.
-	 * \param item_nodes The item nodes to get the unique items from.
-	 * \return Unique items in \p item_nodes.
+	 * \brief Inserts an itemset into the frequent pattern tree.
+	 * \param itemset The itemset to support.
+	 * \param item_support A map containing support by item.
 	 */
-	static std::unordered_set<T> get_unique_items(
-		const std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>>& item_nodes) {
+	void insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& item_support) {
 
-		std::unordered_set<T> items;
+		auto iterator = root_;
 
-		std::transform(item_nodes.begin(), item_nodes.end(), std::inserter(items, items.end()), [](const auto& map_entry) {
-			return map_entry.first;
-		});
+		std::set<T, std::function<bool(T, T)>> items_by_descending_support{
+			itemset.begin(), itemset.end(), [&](const T& a, const T& b) {
+				return item_support.at(a) != item_support.at(b) ? item_support.at(a) > item_support.at(b) : a < b;
+			}};
 
-		return items;
-	}
-
-	/**
-	 * \brief Gets all frequent item nodes and their relative support which are ancestors of a target item node.
-	 * \param target The target item to get frequent ancestor item nodes for.
-	 * \param item_nodes A multimap containing references to nodes by item type.
-	 * \return All frequent item nodes which are ancestors of \p target.
-	 */
-	std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>> get_conditional_item_nodes(
-		const T& target,
-		const std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>>& item_nodes) const {
-
-		std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>> conditional_item_nodes;
-		const auto target_range = item_nodes.equal_range(target);
-
-		for (auto target_iterator = target_range.first; target_iterator != target_range.second; ++target_iterator) {
-			for (auto node = target_iterator->second->parent; node->parent; node = node->parent) {
-
-				if (auto item_node = find_item_node(*node, conditional_item_nodes); item_node) {
-					item_node->support += target_iterator->second->support;
-				} else {
-					item_node = std::make_shared<frequent_pattern_tree_node>(*node);
-					item_node->support = target_iterator->second->support;
-					conditional_item_nodes.insert(std::make_pair(*node->item, item_node));
-				}
+		for (const auto& item : items_by_descending_support) {
+			if (!iterator->children.count(item)) {
+				iterator->children[item] = std::make_shared<FrequentPatternTreeNode>(item, iterator);
+				item_nodes_.insert(std::make_pair(item, iterator->children[item]));
 			}
+			else {
+				++iterator->children[item]->support;
+			}
+			iterator = iterator->children[item];
 		}
-
-		return conditional_item_nodes;
 	}
 
 	/**
@@ -183,10 +128,10 @@ private:
 	 * \param minimum_support The minimum support needed for an itemset to be considered frequent.
 	 * \return Frequently occurring itemsets generated from \p current_itemset
 	 */
-	std::vector<std::unordered_set<T>> get_frequent_itemsets(
+	static std::vector<std::unordered_set<T>> get_frequent_itemsets(
 		const std::unordered_set<T>& current_itemset,
-		const std::unordered_multimap<T, std::shared_ptr<frequent_pattern_tree_node>>& item_nodes,
-		const uint32_t minimum_support) const {
+		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes,
+		const uint32_t minimum_support) {
 
 		std::vector<std::unordered_set<T>> frequent_itemsets;
 
@@ -206,38 +151,85 @@ private:
 		return frequent_itemsets;
 	}
 
+
 	/**
-	 * \brief Inserts an itemset into the frequent pattern tree.
-	 * \param itemset The itemset to support.
-	 * \param item_support A map containing support by item.
+	 * \brief Gets unique items in an item nodes multimap.
+	 * \param item_nodes The item nodes to get the unique items from.
+	 * \return Unique items in \p item_nodes.
 	 */
-	void insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& item_support) {
+	static std::unordered_set<T> get_unique_items(
+		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
-		auto iterator = root_;
+		std::unordered_set<T> unique_items;
 
-		for (const auto& item : order_by_descending_support(itemset, item_support)) {
-			if (!iterator->children.count(item)) {
-				iterator->children[item] = std::make_shared<frequent_pattern_tree_node>(item, iterator);
-				item_nodes_.insert(std::make_pair(item, iterator->children[item]));
-			} else {
-				++iterator->children[item]->support;
-			}
-			iterator = iterator->children[item];
-		}
+		std::transform(item_nodes.begin(), item_nodes.end(), std::inserter(unique_items, unique_items.end()),
+			[](const auto& map_entry) { return map_entry.first; });
+
+		return unique_items;
 	}
 
 	/**
-	 * \brief Orders all items in an itemset by descending support.
-	 * \param itemset The itemset to sort.
-	 * \param item_support A map containing support by item.
-	 * \return An ordered set of items sorted by descending support.
+	 * \brief Gets the support for an item in an item node multimap.
+	 * \param item The item to determine the support for.
+	 * \param item_nodes A multimap containing references to nodes by item type.
+	 * \return The support for \p item in \p item_nodes.
 	 */
-	std::set<T, std::function<bool(T, T)>> order_by_descending_support(
-		const std::unordered_set<T>& itemset,
-		const std::unordered_map<T, uint32_t>& item_support) const {
+	static uint32_t get_item_support(
+		const T& item,
+		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
-		return std::set<T, std::function<bool(T, T)>>{itemset.begin(), itemset.end(), [&](const T& a, const T& b) {
-			return item_support.at(a) != item_support.at(b) ? item_support.at(a) > item_support.at(b) : a < b;
-		}};
+		const auto item_range = item_nodes.equal_range(item);
+
+		return std::reduce(item_range.first, item_range.second, 0u, [](const auto sum, const auto& map_entry) {
+			return sum + map_entry.second->support;
+		});
+	}
+
+	/**
+	 * \brief Gets all frequent item nodes and their relative support which are ancestors of a target item node.
+	 * \param target The target item to get frequent ancestor item nodes for.
+	 * \param item_nodes A multimap containing references to nodes by item type.
+	 * \return All frequent item nodes which are ancestors of \p target.
+	 */
+	static std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> get_conditional_item_nodes(
+		const T& target,
+		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
+
+		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> conditional_item_nodes;
+		const auto target_range = item_nodes.equal_range(target);
+
+		for (auto target_iterator = target_range.first; target_iterator != target_range.second; ++target_iterator) {
+			for (auto node = target_iterator->second->parent; node->parent; node = node->parent) {
+
+				if (auto item_node = find_item_node(*node, conditional_item_nodes); item_node) {
+					item_node->support += target_iterator->second->support;
+				} else {
+					item_node = std::make_shared<FrequentPatternTreeNode>(*node);
+					item_node->support = target_iterator->second->support;
+					conditional_item_nodes.insert(std::make_pair(*node->item, item_node));
+				}
+			}
+		}
+
+		return conditional_item_nodes;
+	}
+
+	/**
+	 * \brief Looks for a node in an item node multimap.
+	 * \param item_node The node to look for.
+	 * \param item_nodes A multimap containing references to nodes by type.
+	 * \return The node if present in \p item_nodes, otherwise \c nullptr. \c
+	 */
+	static std::shared_ptr<FrequentPatternTreeNode> find_item_node(
+		const FrequentPatternTreeNode& item_node,
+		const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
+
+		const auto item = *item_node.item;
+		const auto item_range = item_nodes.equal_range(item);
+		const auto item_range_iterator = std::find_if(item_range.first, item_range.second, [&](const auto& map_entry) {
+			return item_node.id == map_entry.second->id;
+			});
+
+		return item_range_iterator != item_range.second ? item_range_iterator->second : nullptr;
 	}
 };
