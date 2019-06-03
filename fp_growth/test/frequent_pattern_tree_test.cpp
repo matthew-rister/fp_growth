@@ -3,6 +3,8 @@
 #include "catch.h"
 #include "frequent_pattern_tree.h"
 
+using namespace fpt;
+
 SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 
 	GIVEN("A frequent pattern tree constructed from an empty itemset") {
