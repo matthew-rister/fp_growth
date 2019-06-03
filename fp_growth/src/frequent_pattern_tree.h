@@ -109,7 +109,7 @@ namespace fpt {
 			std::set<T, std::function<bool(T, T)>> items_by_descending_support{
 				itemset.begin(), itemset.end(), [&](const T& a, const T& b) {
 					return item_support.at(a) != item_support.at(b) ? item_support.at(a) > item_support.at(b) : a < b;
-				} };
+				}};
 
 			for (const auto& item : items_by_descending_support) {
 				if (!iterator->children.count(item)) {
@@ -140,7 +140,7 @@ namespace fpt {
 			for (const auto& next_item : get_unique_items(item_nodes)) {
 				if (get_item_support(next_item, item_nodes) >= minimum_support) {
 
-					std::unordered_set<T> next_itemset{ current_itemset };
+					std::unordered_set<T> next_itemset{current_itemset};
 					next_itemset.insert(next_item);
 					frequent_itemsets.push_back(next_itemset);
 
@@ -184,7 +184,7 @@ namespace fpt {
 
 			return std::reduce(item_range.first, item_range.second, 0u, [](const auto sum, const auto& map_entry) {
 				return sum + map_entry.second->support;
-				});
+			});
 		}
 
 		/**
@@ -231,7 +231,7 @@ namespace fpt {
 			const auto item_range = item_nodes.equal_range(item);
 			const auto item_range_iterator = std::find_if(item_range.first, item_range.second, [&](const auto& map_entry) {
 				return item_node.id == map_entry.second->id;
-				});
+			});
 
 			return item_range_iterator != item_range.second ? item_range_iterator->second : nullptr;
 		}
