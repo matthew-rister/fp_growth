@@ -1,6 +1,6 @@
 # FP-Growth
 
-[FP-Growth](https://github.com/matthew-rister/fp_growth/blob/master/fp_growth/fp_growth.pdf) is an algorithm designed to efficiently solve a subproblem of [Association Rule Mining](https://github.com/matthew-rister/fp_growth/blob/master/fp_growth/association_rule_mining.pdf) which requires identifying frequently occurring item combinations in a dataset.
+[FP-Growth](https://github.com/matthew-rister/fp_growth/blob/master/fp_growth.pdf) is an algorithm designed to efficiently solve a subproblem of [Association Rule Mining](https://github.com/matthew-rister/fp_growth/blob/master/association_rule_mining.pdf) which requires identifying frequently occurring item combinations in a dataset.
 
 ## Usage
 
