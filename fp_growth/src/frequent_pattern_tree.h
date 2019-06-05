@@ -180,9 +180,8 @@ namespace fpt {
 
 			const auto item_range = item_nodes.equal_range(item);
 
-			return std::reduce(item_range.first, item_range.second, 0u, [](const auto sum, const auto& map_entry) {
-				return sum + map_entry.second->support;
-			});
+			return std::reduce(item_range.first, item_range.second, 0u,
+				[](const auto sum, const auto& map_entry) { return sum + map_entry.second->support; });
 		}
 
 		/**
@@ -227,9 +226,7 @@ namespace fpt {
 			const auto item = *item_node.item;
 			const auto item_range = item_nodes.equal_range(item);
 			const auto item_range_iterator = std::find_if(item_range.first, item_range.second,
-				[&](const auto& map_entry) {
-					return item_node.id == map_entry.second->id;
-				});
+				[&](const auto& map_entry) { return item_node.id == map_entry.second->id; });
 
 			return item_range_iterator != item_range.second ? item_range_iterator->second : nullptr;
 		}
