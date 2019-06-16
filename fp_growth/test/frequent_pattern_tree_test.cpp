@@ -1,5 +1,3 @@
-#include <sstream>
-
 #include "catch.h"
 #include "frequent_pattern_tree.h"
 
