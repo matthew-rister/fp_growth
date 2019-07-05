@@ -1,5 +1,5 @@
 #include "catch.h"
-#include "frequent_pattern_tree.h"
+#include "frequent_pattern_tree.hpp"
 
 using namespace fpt;
 
