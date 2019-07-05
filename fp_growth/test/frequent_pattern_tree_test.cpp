@@ -230,7 +230,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 	}
 
 	GIVEN("A frequent pattern tree constructed from multiple itemsets with overlapping elements") {
-
 		const FrequentPatternTree<char> frequent_pattern_tree{
 			{'B', 'C', 'D'},
 			{'B', 'C', 'D', 'E'},
@@ -240,7 +239,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		};
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 6") {
-
 			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(6);
 
 			THEN("No frequent itemsets exist") {
@@ -249,7 +247,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 5") {
-
 			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(5);
 
 			THEN("The size of the frequent itemsets is equal to 1") {
@@ -264,7 +261,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 4") {
-
 			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(4);
 
 			THEN("The size of the frequent itemsets is equal to 3") {
@@ -291,7 +287,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 3") {
-
 			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(3);
 
 			THEN("The size of the frequent itemsets is equal to 6 ") {
@@ -342,7 +337,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
-
 			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(2);
 
 			THEN("The size of the frequent itemsets is equal to the 13") {
