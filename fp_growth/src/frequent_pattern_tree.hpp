@@ -38,12 +38,21 @@ namespace fpt {
 
 	public:
 
-		explicit FrequentPatternTree(const std::vector<std::unordered_set<T>>& itemsets = {}) {
+		FrequentPatternTree() = default;
 
-			const auto item_support = get_item_support(itemsets);
+		FrequentPatternTree(const std::initializer_list<std::unordered_set<T>>& itemsets)
+			: FrequentPatternTree{itemsets.begin(), itemsets.end()} {}
 
-			for (const auto& itemset : itemsets) {
-				insert(itemset, item_support);
+		template <typename InputIterator>
+		FrequentPatternTree(const InputIterator& begin, const InputIterator end) {
+
+			static_assert(std::is_convertible<typename std::iterator_traits<InputIterator>::iterator_category, std::input_iterator_tag>::value);
+			static_assert(std::is_same<typename std::iterator_traits<InputIterator>::value_type, std::unordered_set<T>>::value);
+
+			const auto item_support = get_item_support(begin, end);
+
+			for (auto iterator = begin; iterator != end; ++iterator) {
+				insert(*iterator, item_support);
 			}
 		}
 
@@ -56,15 +65,16 @@ namespace fpt {
 		std::shared_ptr<FrequentPatternTreeNode> root_ = std::make_shared<FrequentPatternTreeNode>();
 		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> item_nodes_;
 
-		static std::unordered_map<T, uint32_t> get_item_support(const std::vector<std::unordered_set<T>>& itemsets) {
+		template <typename InputIterator>
+		static std::unordered_map<T, uint32_t> get_item_support(const InputIterator& begin, const InputIterator& end) {
 
 			std::unordered_map<T, uint32_t> item_support;
 
-			for (const auto& itemset : itemsets) {
-				for (const auto& item : itemset) {
+			for (auto iterator = begin; iterator != end; ++iterator) {
+				for (const auto& item : *iterator) {
 					++item_support[item];
 				}
-			}
+			};
 
 			return item_support;
 		}
