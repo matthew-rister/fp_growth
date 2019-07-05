@@ -6,7 +6,6 @@ using namespace fpt;
 SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 
 	GIVEN("A frequent pattern tree constructed from an empty itemset") {
-
 		const FrequentPatternTree<char> frequent_pattern_tree;
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
@@ -19,7 +18,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 	}
 
 	GIVEN("A frequent pattern tree constructed from a single itemset containing a one element") {
-
 		const FrequentPatternTree<char> frequent_pattern_tree{{'A'}};
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
@@ -31,7 +29,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
-
 			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(1);
 
 			THEN("The is size of the frequent itemsets is one") {
@@ -47,11 +44,9 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 	}
 
 	GIVEN("A frequent pattern tree constructed from a single itemset containing multiple unique elements") {
-
 		const FrequentPatternTree<char> frequent_pattern_tree{{'A', 'B', 'C'}};
 
 		WHEN("Frequent itemsets are extracted with minimum support of 2") {
-
 			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(2);
 
 			THEN("No frequent itemsets exist") {
@@ -60,7 +55,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
-
 			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(1);
 
 			THEN("The size of the frequent itemsets equal to the number of unique combinations in the set") {
@@ -112,7 +106,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 	}
 
 	GIVEN("A frequent pattern tree constructed from multiple itemsets containing one element") {
-
 		const FrequentPatternTree<char> frequent_pattern_tree{{'A'}, {'B'}, {'C'}};
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
@@ -151,11 +144,9 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 	}
 
 	GIVEN("A frequent pattern tree constructed from multiple itemsets containing multiple unique elements") {
-
 		const FrequentPatternTree<char> frequent_pattern_tree{{'A', 'B', 'C'}, {'D', 'E'}, {'F'}};
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
-
 			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(2);
 
 			THEN("No frequent itemsets exist") {
@@ -164,7 +155,6 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
-
 			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(1);
 
 			THEN("The number of frequent itemsets is equal to the number of unique combinations in each itemset") {
