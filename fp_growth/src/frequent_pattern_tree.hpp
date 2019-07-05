@@ -13,54 +13,31 @@
 
 namespace fpt {
 
-	/**
-	 * \brief Represents a tree used to efficiently store and extract frequent pattern itemsets.
-	 * \tparam T The type used to represent each item.
-	 */
 	template <typename T>
 	class FrequentPatternTree final {
 
-		/** \brief Represents an item node in the frequent pattern tree. */
 		class FrequentPatternTreeNode final {
 
-			/** \brief The number of total nodes created. */
-			static inline uint32_t instance_count_ = 0;
-
 		public:
-
-			/** \brief The node ID. */
 			uint32_t id;
-
-			/** \brief The node item. */
 			std::optional<T> item;
-
-			/** \brief The parent node in the frequent pattern tree. */
 			std::shared_ptr<FrequentPatternTreeNode> parent;
-
-			/** \brief A mapping of child nodes by item type. */
 			std::unordered_map<T, std::shared_ptr<FrequentPatternTreeNode>> children;
-
-			/** \brief A count of the number of times this node item was encountered in an itemset. */
 			uint32_t support = 1;
 
-			/** \brief Initializes a frequent pattern tree node. */
 			explicit FrequentPatternTreeNode(
 				std::optional<T> item = std::nullopt,
 				std::shared_ptr<FrequentPatternTreeNode> parent = nullptr)
 				: id{++instance_count_},
 				  item{std::move(item)},
 				  parent{std::move(parent)} {}
+
+		private:
+			static inline uint32_t instance_count_ = 0;
 		};
-
-		/** \brief The root of the frequent pattern tree. */
-		std::shared_ptr<FrequentPatternTreeNode> root_ = std::make_shared<FrequentPatternTreeNode>();
-
-		/** \brief A mapping of nodes in the tree by item type. */
-		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> item_nodes_;
 
 	public:
 
-		/** \brief Initializes a frequent pattern tree from a collection of itemsets. */
 		explicit FrequentPatternTree(const std::vector<std::unordered_set<T>>& itemsets = {}) {
 
 			const auto item_support = get_item_support(itemsets);
@@ -70,22 +47,15 @@ namespace fpt {
 			}
 		}
 
-		/**
-		 * \brief Gets all frequently occurring itemsets.
-		 * \param minimum_support The minimum support needed for an itemset to be considered frequent.
-		 * \return All frequently occurring itemsets with support greater than \p minimum_support.
-		 */
 		std::vector<std::unordered_set<T>> get_frequent_itemsets(const uint32_t minimum_support) const {
 			return get_frequent_itemsets({}, item_nodes_, minimum_support);
 		}
 
 	private:
 
-		/**
-		 * \brief Gets the support for each item type in a collection of itemsets.
-		 * \param itemsets A collection of itemsets to determine support for.
-		 * \return The support for each item in \p itemsets.
-		 */
+		std::shared_ptr<FrequentPatternTreeNode> root_ = std::make_shared<FrequentPatternTreeNode>();
+		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> item_nodes_;
+
 		static std::unordered_map<T, uint32_t> get_item_support(const std::vector<std::unordered_set<T>>& itemsets) {
 
 			std::unordered_map<T, uint32_t> item_support;
@@ -99,11 +69,6 @@ namespace fpt {
 			return item_support;
 		}
 
-		/**
-		 * \brief Inserts an itemset into the frequent pattern tree.
-		 * \param itemset The itemset to support.
-		 * \param item_support A map containing support by item.
-		 */
 		void insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& item_support) {
 
 			auto iterator = root_;
@@ -124,13 +89,6 @@ namespace fpt {
 			}
 		}
 
-		/**
-		 * \brief Gets frequently occurring itemsets.
-		 * \param current_itemset The current frequent itemset to generate candidate itemsets from.
-		 * \param item_nodes A multimap containing references to nodes by item type.
-		 * \param minimum_support The minimum support needed for an itemset to be considered frequent.
-		 * \return Frequently occurring itemsets generated from \p current_itemset
-		 */
 		static std::vector<std::unordered_set<T>> get_frequent_itemsets(
 			const std::unordered_set<T>& current_itemset,
 			const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes,
@@ -154,11 +112,6 @@ namespace fpt {
 			return frequent_itemsets;
 		}
 
-		/**
-		 * \brief Gets unique items in an item nodes multimap.
-		 * \param item_nodes The item nodes to get the unique items from.
-		 * \return Unique items in \p item_nodes.
-		 */
 		static std::unordered_set<T> get_unique_items(
 			const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
@@ -170,12 +123,6 @@ namespace fpt {
 			return unique_items;
 		}
 
-		/**
-		 * \brief Gets the support for an item in an item node multimap.
-		 * \param item The item to determine the support for.
-		 * \param item_nodes A multimap containing references to nodes by item type.
-		 * \return The support for \p item in \p item_nodes.
-		 */
 		static uint32_t get_item_support(
 			const T& item,
 			const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
@@ -186,12 +133,6 @@ namespace fpt {
 				[](const auto sum, const auto& map_entry) { return sum + map_entry.second->support; });
 		}
 
-		/**
-		 * \brief Gets all frequent item nodes and their relative support which are ancestors of a target item node.
-		 * \param target The target item to get frequent ancestor item nodes for.
-		 * \param item_nodes A multimap containing references to nodes by item type.
-		 * \return All frequent item nodes which are ancestors of \p target.
-		 */
 		static std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> get_conditional_item_nodes(
 			const T& target,
 			const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
@@ -215,12 +156,6 @@ namespace fpt {
 			return conditional_item_nodes;
 		}
 
-		/**
-		 * \brief Looks for a node in an item node multimap.
-		 * \param item_node The node to look for.
-		 * \param item_nodes A multimap containing references to nodes by type.
-		 * \return The node if present in \p item_nodes, otherwise \c nullptr. \c
-		 */
 		static std::shared_ptr<FrequentPatternTreeNode> find_item_node(
 			const FrequentPatternTreeNode& item_node,
 			const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
