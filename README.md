@@ -7,7 +7,7 @@
 A frequent pattern tree can be constructed from a `std::vector<std::unordered_set<T>>` representing the itemsets to analyze for frequently occurring items.
 
 ```C++
-#include "frequent_pattern_tree.h"
+#include "frequent_pattern_tree.hpp"
 
 using namespace fpt;
 
