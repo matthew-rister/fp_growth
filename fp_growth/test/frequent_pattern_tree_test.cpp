@@ -1,4 +1,4 @@
-#include "catch.h"
+#include "catch.hpp"
 #include "frequent_pattern_tree.hpp"
 
 using namespace fpt;
