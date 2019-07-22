@@ -13,7 +13,8 @@
 
 namespace fpt {
 
-	template <typename T> class FrequentPatternTree final {
+	template <typename T>
+	class FrequentPatternTree final {
 
 		class FrequentPatternTreeNode final {
 
@@ -42,7 +43,8 @@ namespace fpt {
 		FrequentPatternTree(const std::initializer_list<std::unordered_set<T>>& itemsets)
 			: FrequentPatternTree{itemsets.begin(), itemsets.end()} {}
 
-		template <typename ItemsetIterator> FrequentPatternTree(const ItemsetIterator& begin, const ItemsetIterator end) {
+		template <typename ItemsetIterator>
+		FrequentPatternTree(const ItemsetIterator& begin, const ItemsetIterator end) {
 
 			const auto item_support = get_item_support(begin, end);
 
@@ -59,13 +61,13 @@ namespace fpt {
 		std::shared_ptr<FrequentPatternTreeNode> root_ = std::make_shared<FrequentPatternTreeNode>();
 		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> item_nodes_;
 
-		template <typename InputIterator>
-		static std::unordered_map<T, uint32_t> get_item_support(const InputIterator& begin, const InputIterator& end) {
+		template <typename ItemsetIterator>
+		static std::unordered_map<T, uint32_t> get_item_support(const ItemsetIterator& begin, const ItemsetIterator& end) {
 
 			std::unordered_map<T, uint32_t> item_support;
 
-			for (auto iterator = begin; iterator != end; ++iterator) {
-				for (const auto& item : *iterator) {
+			for (auto itemset = begin; itemset != end; ++itemset) {
+				for (const auto& item : *itemset) {
 					++item_support[item];
 				}
 			};
