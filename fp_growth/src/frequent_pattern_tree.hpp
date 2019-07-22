@@ -13,8 +13,7 @@
 
 namespace fpt {
 
-	template <typename T>
-	class FrequentPatternTree final {
+	template <typename T> class FrequentPatternTree final {
 
 		class FrequentPatternTreeNode final {
 
@@ -43,25 +42,20 @@ namespace fpt {
 		FrequentPatternTree(const std::initializer_list<std::unordered_set<T>>& itemsets)
 			: FrequentPatternTree{itemsets.begin(), itemsets.end()} {}
 
-		template <typename InputIterator>
-		FrequentPatternTree(const InputIterator& begin, const InputIterator end) {
-
-			static_assert(std::is_convertible<typename std::iterator_traits<InputIterator>::iterator_category, std::input_iterator_tag>::value);
-			static_assert(std::is_same<typename std::iterator_traits<InputIterator>::value_type, std::unordered_set<T>>::value);
+		template <typename ItemsetIterator> FrequentPatternTree(const ItemsetIterator& begin, const ItemsetIterator end) {
 
 			const auto item_support = get_item_support(begin, end);
 
-			for (auto iterator = begin; iterator != end; ++iterator) {
-				insert(*iterator, item_support);
+			for (auto itemset = begin; itemset != end; ++itemset) {
+				insert(*itemset, item_support);
 			}
 		}
 
-		std::vector<std::unordered_set<T>> get_frequent_itemsets(const uint32_t minimum_support) const {
+		[[nodiscard]] std::vector<std::unordered_set<T>> get_frequent_itemsets(const uint32_t minimum_support) const {
 			return get_frequent_itemsets({}, item_nodes_, minimum_support);
 		}
 
 	private:
-
 		std::shared_ptr<FrequentPatternTreeNode> root_ = std::make_shared<FrequentPatternTreeNode>();
 		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> item_nodes_;
 
@@ -81,12 +75,12 @@ namespace fpt {
 
 		void insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& item_support) {
 
-			auto iterator = root_;
-
 			std::set<T, std::function<bool(T, T)>> items_by_descending_support{itemset.begin(), itemset.end(),
 				[&](const T& a, const T& b) {
 					return item_support.at(a) != item_support.at(b) ? item_support.at(a) > item_support.at(b) : a < b;
 				}};
+
+			auto iterator = root_;
 
 			for (const auto& item : items_by_descending_support) {
 				if (!iterator->children.count(item)) {
