@@ -13,8 +13,7 @@
 
 namespace fpt {
 
-	template <typename T>
-	class FrequentPatternTree final {
+	template <typename T> class FrequentPatternTree final {
 
 		class FrequentPatternTreeNode final {
 
@@ -26,7 +25,7 @@ namespace fpt {
 			uint32_t support = 1;
 
 			explicit FrequentPatternTreeNode(
-				std::optional<T> item = std::nullopt,
+				std::optional<const T> item = std::nullopt,
 				std::shared_ptr<FrequentPatternTreeNode> parent = nullptr)
 				: id{++instance_count_},
 				  item{std::move(item)},
@@ -37,13 +36,12 @@ namespace fpt {
 		};
 
 	public:
-
 		FrequentPatternTree() = default;
-
+		
 		FrequentPatternTree(const std::initializer_list<std::unordered_set<T>>& itemsets)
 			: FrequentPatternTree{itemsets.begin(), itemsets.end()} {}
 
-		template <typename ItemsetIterator>
+		template <typename ItemsetIterator> 
 		FrequentPatternTree(const ItemsetIterator& begin, const ItemsetIterator end) {
 
 			const auto item_support = get_item_support(begin, end);
@@ -77,7 +75,7 @@ namespace fpt {
 
 		void insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& item_support) {
 
-			std::set<T, std::function<bool(T, T)>> items_by_descending_support{itemset.begin(), itemset.end(),
+			std::set<T, std::function<bool(T, T)>> items_by_descending_support{itemset.cbegin(), itemset.cend(),
 				[&](const T& a, const T& b) {
 					return item_support.at(a) != item_support.at(b) ? item_support.at(a) > item_support.at(b) : a < b;
 				}};
@@ -111,7 +109,7 @@ namespace fpt {
 
 					const auto conditional_item_nodes = get_conditional_item_nodes(next_item, item_nodes);
 					const auto next_itemsets = get_frequent_itemsets(next_itemset, conditional_item_nodes, minimum_support);
-					frequent_itemsets.insert(frequent_itemsets.end(), next_itemsets.begin(), next_itemsets.end());
+					frequent_itemsets.insert(frequent_itemsets.cend(), next_itemsets.cbegin(), next_itemsets.cend());
 				}
 			}
 
@@ -123,7 +121,7 @@ namespace fpt {
 
 			std::unordered_set<T> unique_items;
 
-			std::transform(item_nodes.begin(), item_nodes.end(), std::inserter(unique_items, unique_items.end()),
+			std::transform(item_nodes.cbegin(), item_nodes.cend(), std::inserter(unique_items, unique_items.end()),
 				[](const auto& map_entry) { return map_entry.first; });
 
 			return unique_items;
