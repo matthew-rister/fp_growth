@@ -121,7 +121,10 @@ namespace fpt {
 
 			std::unordered_set<T> unique_items;
 
-			std::transform(item_nodes.cbegin(), item_nodes.cend(), std::inserter(unique_items, unique_items.end()),
+			std::transform(
+				item_nodes.cbegin(),
+				item_nodes.cend(),
+				std::inserter(unique_items, unique_items.end()),
 				[](const auto& map_entry) { return map_entry.first; });
 
 			return unique_items;
@@ -133,8 +136,13 @@ namespace fpt {
 
 			const auto item_range = item_nodes.equal_range(item);
 
-			return std::transform_reduce(std::execution::par_unseq, item_range.first, item_range.second, static_cast<uint32_t>(0),
-				std::plus<uint32_t>(), [](const auto& map_entry) { return map_entry.second->support; });
+			return std::transform_reduce(
+				std::execution::par_unseq,
+				item_range.first,
+				item_range.second,
+				static_cast<uint32_t>(0),
+				std::plus<uint32_t>(),
+				[](const auto& map_entry) { return map_entry.second->support; });
 		}
 
 		static std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> get_conditional_item_nodes(
@@ -166,7 +174,10 @@ namespace fpt {
 
 			const auto item = *item_node.item;
 			const auto item_range = item_nodes.equal_range(item);
-			const auto item_range_iterator = std::find_if(item_range.first, item_range.second,
+			const auto item_range_iterator = std::find_if(
+				std::execution::par_unseq,
+				item_range.first,
+				item_range.second,
 				[&](const auto& map_entry) { return item_node.id == map_entry.second->id; });
 
 			return item_range_iterator != item_range.second ? item_range_iterator->second : nullptr;
