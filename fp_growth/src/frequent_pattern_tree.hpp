@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <execution>
 #include <functional>
 #include <iterator>
 #include <memory>
@@ -132,8 +133,8 @@ namespace fpt {
 
 			const auto item_range = item_nodes.equal_range(item);
 
-			return std::accumulate(item_range.first, item_range.second, static_cast<uint32_t>(0),
-				[](const auto sum, const auto& map_entry) { return sum + map_entry.second->support; });
+			return std::transform_reduce(std::execution::par_unseq, item_range.first, item_range.second, static_cast<uint32_t>(0),
+				std::plus<uint32_t>(), [](const auto& map_entry) { return map_entry.second->support; });
 		}
 
 		static std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> get_conditional_item_nodes(
