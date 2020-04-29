@@ -25,3 +25,11 @@ Once the tree has been constructed, it can be queried for frequently occurring i
 ```C++
 const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(4);
 ```
+
+## Build
+
+To build the project, you must have cmake version 3 installed and a compiler that supports the C++17 language standard. You can then build from your favorite IDE or by running `cmake . && make` from the command line.
+
+## Test
+
+This project uses the [Catch2](https://github.com/catchorg/Catch2) testing library which is included in this repository as a single header-only file. Tests are currently configured to run as part of the main executable after building. 
