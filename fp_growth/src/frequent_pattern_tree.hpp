@@ -132,7 +132,7 @@ namespace fpt {
 
 			const auto item_range = item_nodes.equal_range(item);
 
-			return std::reduce(item_range.first, item_range.second, 0u,
+			return std::accumulate(item_range.first, item_range.second, static_cast<uint32_t>(0),
 				[](const auto sum, const auto& map_entry) { return sum + map_entry.second->support; });
 		}
 
