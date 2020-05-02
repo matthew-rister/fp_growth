@@ -40,7 +40,7 @@ namespace fpt {
 		FrequentPatternTree() = default;
 
 		FrequentPatternTree(const std::initializer_list<std::unordered_set<T>>& itemsets)
-			: FrequentPatternTree{itemsets.begin(), itemsets.end()} {}
+			: FrequentPatternTree{std::cbegin(itemsets), std::cend(itemsets)} {}
 
 		template <typename ItemsetIterator> FrequentPatternTree(const ItemsetIterator& begin, const ItemsetIterator end) {
 
@@ -122,9 +122,9 @@ namespace fpt {
 			std::unordered_set<T> unique_items;
 
 			std::transform(
-				item_nodes.cbegin(),
-				item_nodes.cend(),
-				std::inserter(unique_items, unique_items.end()),
+				std::cbegin(item_nodes),
+				std::cend(item_nodes),
+				std::inserter(unique_items, std::cend(unique_items)),
 				[](const auto& map_entry) { return map_entry.first; });
 
 			return unique_items;
