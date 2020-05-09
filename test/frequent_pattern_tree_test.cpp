@@ -1,3 +1,5 @@
+#define CATCH_CONFIG_MAIN
+
 #include "catch.hpp"
 #include "frequent_pattern_tree.hpp"
 
