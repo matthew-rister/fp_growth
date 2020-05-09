@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <execution>
 #include <functional>
 #include <iterator>
 #include <memory>
@@ -43,7 +42,6 @@ namespace fpt {
 			: FrequentPatternTree{std::cbegin(itemsets), std::cend(itemsets)} {}
 
 		template <typename ItemsetIterator> FrequentPatternTree(const ItemsetIterator& begin, const ItemsetIterator end) {
-
 			const auto item_support = get_item_support(begin, end);
 
 			for (auto itemset = begin; itemset != end; ++itemset) {
@@ -124,7 +122,7 @@ namespace fpt {
 			std::transform(
 				std::cbegin(item_nodes),
 				std::cend(item_nodes),
-				std::inserter(unique_items, std::cend(unique_items)),
+				std::inserter(unique_items, std::end(unique_items)),
 				[](const auto& map_entry) { return map_entry.first; });
 
 			return unique_items;
@@ -137,7 +135,6 @@ namespace fpt {
 			const auto item_range = item_nodes.equal_range(item);
 
 			return std::transform_reduce(
-				std::execution::par_unseq,
 				item_range.first,
 				item_range.second,
 				static_cast<uint32_t>(0),
@@ -174,10 +171,7 @@ namespace fpt {
 
 			const auto item = *item_node.item;
 			const auto item_range = item_nodes.equal_range(item);
-			const auto item_range_iterator = std::find_if(
-				std::execution::par_unseq,
-				item_range.first,
-				item_range.second,
+			const auto item_range_iterator = std::find_if(item_range.first, item_range.second,
 				[&](const auto& map_entry) { return item_node.id == map_entry.second->id; });
 
 			return item_range_iterator != item_range.second ? item_range_iterator->second : nullptr;
