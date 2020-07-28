@@ -42,15 +42,15 @@ namespace fpt {
 			: FrequentPatternTree{std::cbegin(itemsets), std::cend(itemsets)} {}
 
 		template <typename ItemsetIterator> FrequentPatternTree(const ItemsetIterator& begin, const ItemsetIterator& end) {
-			const auto item_support = get_item_support(begin, end);
+			const auto item_support = GetItemSupport(begin, end);
 
 			for (auto itemset = begin; itemset != end; ++itemset) {
-				insert(*itemset, item_support);
+				Insert(*itemset, item_support);
 			}
 		}
 
-		[[nodiscard]] std::vector<std::unordered_set<T>> get_frequent_itemsets(const uint32_t minimum_support) const {
-			return get_frequent_itemsets({}, item_nodes_, minimum_support);
+		[[nodiscard]] std::vector<std::unordered_set<T>> GetFrequentItemsets(const uint32_t minimum_support) const {
+			return GetFrequentItemsets({}, item_nodes_, minimum_support);
 		}
 
 	private:
@@ -58,7 +58,7 @@ namespace fpt {
 		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> item_nodes_;
 
 		template <typename ItemsetIterator>
-		static std::unordered_map<T, uint32_t> get_item_support(const ItemsetIterator& begin, const ItemsetIterator& end) {
+		static std::unordered_map<T, uint32_t> GetItemSupport(const ItemsetIterator& begin, const ItemsetIterator& end) {
 
 			std::unordered_map<T, uint32_t> item_support;
 
@@ -71,7 +71,7 @@ namespace fpt {
 			return item_support;
 		}
 
-		void insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& item_support) {
+		void Insert(const std::unordered_set<T>& itemset, const std::unordered_map<T, uint32_t>& item_support) {
 
 			std::set<T, std::function<bool(T, T)>> items_by_descending_support{itemset.cbegin(), itemset.cend(),
 				[&](const T& a, const T& b) {
@@ -91,22 +91,22 @@ namespace fpt {
 			}
 		}
 
-		static std::vector<std::unordered_set<T>> get_frequent_itemsets(
+		static std::vector<std::unordered_set<T>> GetFrequentItemsets(
 			const std::unordered_set<T>& current_itemset,
 			const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes,
 			const uint32_t minimum_support) {
 
 			std::vector<std::unordered_set<T>> frequent_itemsets;
 
-			for (const auto& next_item : get_unique_items(item_nodes)) {
-				if (get_item_support(next_item, item_nodes) >= minimum_support) {
+			for (const auto& next_item : GetUniqueItems(item_nodes)) {
+				if (GetItemSupport(next_item, item_nodes) >= minimum_support) {
 
 					std::unordered_set<T> next_itemset{current_itemset};
 					next_itemset.insert(next_item);
 					frequent_itemsets.push_back(next_itemset);
 
-					const auto conditional_item_nodes = get_conditional_item_nodes(next_item, item_nodes);
-					const auto next_itemsets = get_frequent_itemsets(next_itemset, conditional_item_nodes, minimum_support);
+					const auto conditional_item_nodes = GetConditionalItemNodes(next_item, item_nodes);
+					const auto next_itemsets = GetFrequentItemsets(next_itemset, conditional_item_nodes, minimum_support);
 					frequent_itemsets.insert(frequent_itemsets.cend(), next_itemsets.cbegin(), next_itemsets.cend());
 				}
 			}
@@ -114,7 +114,7 @@ namespace fpt {
 			return frequent_itemsets;
 		}
 
-		static std::unordered_set<T> get_unique_items(
+		static std::unordered_set<T> GetUniqueItems(
 			const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
 			std::unordered_set<T> unique_items;
@@ -128,7 +128,7 @@ namespace fpt {
 			return unique_items;
 		}
 
-		static uint32_t get_item_support(
+		static uint32_t GetItemSupport(
 			const T& item,
 			const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
@@ -142,7 +142,7 @@ namespace fpt {
 				[](const auto& map_entry) { return map_entry.second->support; });
 		}
 
-		static std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> get_conditional_item_nodes(
+		static std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> GetConditionalItemNodes(
 			const T& target,
 			const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 
@@ -152,7 +152,7 @@ namespace fpt {
 			for (auto target_iterator = target_range.first; target_iterator != target_range.second; ++target_iterator) {
 				for (auto node = target_iterator->second->parent; node->parent; node = node->parent) {
 
-					if (auto item_node = find_item_node(*node, conditional_item_nodes); item_node) {
+					if (auto item_node = FindItemNode(*node, conditional_item_nodes); item_node) {
 						item_node->support += target_iterator->second->support;
 					} else {
 						item_node = std::make_shared<FrequentPatternTreeNode>(*node);
@@ -165,7 +165,7 @@ namespace fpt {
 			return conditional_item_nodes;
 		}
 
-		static std::shared_ptr<FrequentPatternTreeNode> find_item_node(
+		static std::shared_ptr<FrequentPatternTreeNode> FindItemNode(
 			const FrequentPatternTreeNode& item_node,
 			const std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>>& item_nodes) {
 

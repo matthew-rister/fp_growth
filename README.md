@@ -23,7 +23,7 @@ const FrequentPatternTree<char> frequent_pattern_tree{{
 Once the tree has been constructed, it can be queried for frequently occurring items by passing in the minimum support which represents the minimum number of times an itemset should occur to be considered frequent.
 
 ```C++
-const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(4);
+const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(4);
 ```
 
 ## Build

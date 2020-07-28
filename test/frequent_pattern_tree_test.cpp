@@ -11,7 +11,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		const FrequentPatternTree<char> frequent_pattern_tree;
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(1);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(1);
 
 			THEN("No frequent itemsets exist") {
 				REQUIRE(frequent_itemsets.empty());
@@ -23,7 +23,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		const FrequentPatternTree<char> frequent_pattern_tree{{'A'}};
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(2);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(2);
 
 			THEN("No frequent itemsets exist") {
 				REQUIRE(frequent_itemsets.empty());
@@ -31,7 +31,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(1);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(1);
 
 			THEN("The is size of the frequent itemsets is one") {
 				REQUIRE(frequent_itemsets.size() == 1);
@@ -49,7 +49,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		const FrequentPatternTree<char> frequent_pattern_tree{{'A', 'B', 'C'}};
 
 		WHEN("Frequent itemsets are extracted with minimum support of 2") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(2);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(2);
 
 			THEN("No frequent itemsets exist") {
 				REQUIRE(frequent_itemsets.empty());
@@ -57,7 +57,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(1);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(1);
 
 			THEN("The size of the frequent itemsets equal to the number of unique combinations in the set") {
 				REQUIRE(frequent_itemsets.size() == 7);
@@ -112,7 +112,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		const FrequentPatternTree<char> frequent_pattern_tree{{'A'}, {'B'}, {'C'}};
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(2);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(2);
 
 			THEN("No frequent itemsets exist") {
 				REQUIRE(frequent_itemsets.empty());
@@ -121,7 +121,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
 
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(1);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(1);
 
 			THEN("The size of the frequent itemsets is equal to the number of unique items") {
 				REQUIRE(frequent_itemsets.size() == 3);
@@ -152,7 +152,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
 
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(2);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(2);
 
 			THEN("No frequent itemsets exist") {
 				REQUIRE(frequent_itemsets.empty());
@@ -161,7 +161,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 1") {
 
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(1);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(1);
 
 			THEN("The number of frequent itemsets is equal to the number of unique combinations in each itemset") {
 				REQUIRE(frequent_itemsets.size() == 11);
@@ -246,7 +246,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		};
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 6") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(6);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(6);
 
 			THEN("No frequent itemsets exist") {
 				REQUIRE(frequent_itemsets.empty());
@@ -254,7 +254,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 5") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(5);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(5);
 
 			THEN("The size of the frequent itemsets is equal to 1") {
 				REQUIRE(frequent_itemsets.size() == 1);
@@ -268,7 +268,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 4") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(4);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(4);
 
 			THEN("The size of the frequent itemsets is equal to 3") {
 				REQUIRE(frequent_itemsets.size() == 3);
@@ -294,7 +294,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 3") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(3);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(3);
 
 			THEN("The size of the frequent itemsets is equal to 6 ") {
 				REQUIRE(frequent_itemsets.size() == 7);
@@ -344,7 +344,7 @@ SCENARIO("Frequent Itemset Generation", "[frequent_pattern_tree]") {
 		}
 
 		WHEN("Frequent itemsets are extracted with a minimum support of 2") {
-			const auto frequent_itemsets = frequent_pattern_tree.get_frequent_itemsets(2);
+			const auto frequent_itemsets = frequent_pattern_tree.GetFrequentItemsets(2);
 
 			THEN("The size of the frequent itemsets is equal to the 13") {
 				REQUIRE(frequent_itemsets.size() == 13);
