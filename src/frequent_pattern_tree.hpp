@@ -15,9 +15,7 @@ namespace fpt {
 
 	template <typename T> class FrequentPatternTree final {
 
-		class FrequentPatternTreeNode final {
-
-		public:
+		struct FrequentPatternTreeNode final {
 			uint32_t id;
 			std::optional<T> item;
 			std::shared_ptr<FrequentPatternTreeNode> parent;
@@ -54,9 +52,6 @@ namespace fpt {
 		}
 
 	private:
-		std::shared_ptr<FrequentPatternTreeNode> root_ = std::make_shared<FrequentPatternTreeNode>();
-		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> item_nodes_;
-
 		template <typename ItemsetIterator>
 		static std::unordered_map<T, uint32_t> GetItemSupport(const ItemsetIterator& begin, const ItemsetIterator& end) {
 
@@ -176,5 +171,8 @@ namespace fpt {
 
 			return item_range_iterator != item_range.second ? item_range_iterator->second : nullptr;
 		}
+
+		std::shared_ptr<FrequentPatternTreeNode> root_ = std::make_shared<FrequentPatternTreeNode>();
+		std::unordered_multimap<T, std::shared_ptr<FrequentPatternTreeNode>> item_nodes_;
 	};
 }
