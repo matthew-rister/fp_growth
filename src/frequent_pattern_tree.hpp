@@ -16,11 +16,6 @@ namespace fpt {
 	template <typename T> class FrequentPatternTree final {
 
 		struct FrequentPatternTreeNode final {
-			uint32_t id;
-			std::optional<T> item;
-			std::shared_ptr<FrequentPatternTreeNode> parent;
-			std::unordered_map<T, std::shared_ptr<FrequentPatternTreeNode>> children;
-			uint32_t support = 1;
 
 			explicit FrequentPatternTreeNode(
 				std::optional<const T> item = std::nullopt,
@@ -28,6 +23,12 @@ namespace fpt {
 				: id{++instance_count_},
 				  item{std::move(item)},
 				  parent{std::move(parent)} {}
+
+			uint32_t id;
+			std::optional<T> item;
+			std::shared_ptr<FrequentPatternTreeNode> parent;
+			std::unordered_map<T, std::shared_ptr<FrequentPatternTreeNode>> children;
+			uint32_t support = 1;
 
 		private:
 			static inline uint32_t instance_count_ = 0;
@@ -129,11 +130,7 @@ namespace fpt {
 
 			const auto item_range = item_nodes.equal_range(item);
 
-			return std::transform_reduce(
-				item_range.first,
-				item_range.second,
-				static_cast<uint32_t>(0),
-				std::plus<uint32_t>(),
+			return std::transform_reduce(item_range.first, item_range.second, uint32_t{0}, std::plus<uint32_t>{},
 				[](const auto& map_entry) { return map_entry.second->support; });
 		}
 
