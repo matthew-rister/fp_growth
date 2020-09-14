@@ -79,7 +79,7 @@ namespace fpt {
 			for (const auto& item : items_by_descending_support) {
 				if (!iterator->children.count(item)) {
 					iterator->children[item] = std::make_shared<FrequentPatternTreeNode>(item, iterator);
-					item_nodes_.insert(std::make_pair(item, iterator->children[item]));
+					item_nodes_.emplace(item, iterator->children[item]);
 				} else {
 					++iterator->children[item]->support;
 				}
@@ -115,10 +115,7 @@ namespace fpt {
 
 			std::unordered_set<T> unique_items;
 
-			std::transform(
-				std::cbegin(item_nodes),
-				std::cend(item_nodes),
-				std::inserter(unique_items, std::end(unique_items)),
+			std::transform(item_nodes.cbegin(), item_nodes.cend(), std::inserter(unique_items, std::end(unique_items)),
 				[](const auto& map_entry) { return map_entry.first; });
 
 			return unique_items;
@@ -149,7 +146,7 @@ namespace fpt {
 					} else {
 						item_node = std::make_shared<FrequentPatternTreeNode>(*node);
 						item_node->support = target_iterator->second->support;
-						conditional_item_nodes.insert(std::make_pair(*node->item, item_node));
+						conditional_item_nodes.emplace(*node->item, item_node);
 					}
 				}
 			}
